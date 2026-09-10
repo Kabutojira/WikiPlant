@@ -1,12 +1,88 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wikiplant.invalid/schemas/operation-v1.json",
+  "$id": "https://wikiplant.invalid/schemas/operation-v2.json",
   "type": "object",
-  "required": ["id", "instance_id", "stage", "targets", "created_at"],
+  "required": [
+    "schema_version",
+    "operation_id",
+    "instance_id",
+    "target_id",
+    "stage",
+    "output_sha256"
+  ],
   "properties": {
-    "id": {"type": "string", "minLength": 1}, "instance_id": {"type": "string", "minLength": 1}, "stage": {"enum": ["intent", "evidence_saved", "wiki_verified", "queue_verified", "complete", "conflict", "blocked"]},
-    "targets": {"type": "array", "items": {"type": "object", "required": ["file_id", "input_sha256", "output_sha256"], "properties": {"file_id": {"type": "string"}, "input_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "output_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "observed_revision": {"type": ["integer", "null"]}}}},
-    "created_at": {"type": "string", "format": "date-time"}
+    "schema_version": {
+      "const": 2
+    },
+    "operation_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "instance_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "stage": {
+      "enum": [
+        "INTENT_SAVED",
+        "COMPLETE"
+      ]
+    },
+    "input_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "output_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "input_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "output_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "intent_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "authorization": {
+      "type": [
+        "object",
+        "null"
+      ]
+    }
   },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "stage": {
+            "const": "INTENT_SAVED"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "input_sha256",
+          "input_revision",
+          "logical_path",
+          "root_id"
+        ]
+      },
+      "else": {
+        "required": [
+          "output_revision",
+          "intent_sha256"
+        ]
+      }
+    }
+  ],
   "additionalProperties": true
 }

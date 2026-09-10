@@ -1,0 +1,113 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/evidence-link-v2.json",
+  "type": "object",
+  "required": [
+    "source_id",
+    "locator",
+    "passage_sha256",
+    "role",
+    "inspected_at",
+    "method",
+    "directness",
+    "assessment_reason",
+    "applicability"
+  ],
+  "properties": {
+    "source_id": {
+      "type": "string"
+    },
+    "locator": {
+      "type": "string",
+      "minLength": 1
+    },
+    "passage_sha256": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    },
+    "role": {
+      "enum": [
+        "supports",
+        "contradicts",
+        "context"
+      ]
+    },
+    "inspected_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "evidence_origin_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "method": {
+      "type": "string"
+    },
+    "directness": {
+      "enum": [
+        "direct",
+        "secondary",
+        "lead",
+        "derived"
+      ]
+    },
+    "assessment_reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "applicability": {
+      "enum": [
+        "applicable",
+        "potentially_applicable",
+        "not_applicable",
+        "unknown"
+      ]
+    },
+    "conditions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "conflicts_of_interest": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "uncertainty": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "method_quality": {
+      "enum": [
+        "adequate",
+        "limited",
+        "unknown"
+      ]
+    },
+    "reproducible": {
+      "type": "boolean"
+    },
+    "reproducibility_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "invalidated_by": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "extra_fields": {
+      "type": "object"
+    }
+  },
+  "additionalProperties": true
+}

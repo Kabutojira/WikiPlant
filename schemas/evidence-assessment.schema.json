@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/evidence-assessment-v2.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "source_files",
+    "claims",
+    "challenges",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "source_files": {
+      "type": "object",
+      "maxProperties": 256,
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "file_id",
+          "sha256"
+        ],
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "claim_files": {
+      "type": "object",
+      "maxProperties": 512,
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "file_id",
+          "sha256"
+        ],
+        "properties": {
+          "file_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "claims": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "claim.schema.json"
+      }
+    },
+    "challenges": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "$ref": "challenge.schema.json"
+      }
+    },
+    "findings": {
+      "type": "array",
+      "maxItems": 512,
+      "items": {
+        "type": "object",
+        "required": [
+          "claim_id",
+          "text"
+        ],
+        "properties": {
+          "claim_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "additionalProperties": true
+      }
+    }
+  },
+  "additionalProperties": true,
+  "$comment": "The helper also enforces summed claim closure bounds, exact source/dependency hashes, unique IDs, acyclic dependencies, challenge bindings and policy-derived statuses. Computed output fields are not trusted from persisted input."
+}

@@ -22,6 +22,8 @@ class FakeDrive:
     """In-memory Drive with IDs, revisions, pagination, and failure injection."""
 
     def __init__(self) -> None:
+        self.conditional_write = True
+        self.idempotent_create = True
         self.entries: dict[str, _Entry] = {}
         self.idempotency: dict[str, str] = {}
         self.applied_operations: dict[str, str] = {}
@@ -81,14 +83,14 @@ class FakeDrive:
             raise ValidationError("mapped file moved outside approved instance scope")
         digest = sha256_bytes(content)
         if operation_id in self.applied_operations:
-            if self.applied_operations[operation_id] != digest:
+            if self.applied_operations[operation_id] != (file_id, digest):
                 raise ConflictError("operation id was already used for different content")
             return self._snapshot(entry)
         if expected_revision is not None and entry.revision != expected_revision:
             raise ConflictError("revision precondition failed")
         entry.content = content
         entry.revision += 1
-        self.applied_operations[operation_id] = digest
+        self.applied_operations[operation_id] = (file_id, digest)
         result = self._snapshot(entry)
         if self.lose_next_write_response:
             self.lose_next_write_response = False
@@ -118,3 +120,20 @@ class FakeDrive:
         entry = self.entries[file_id]
         entry.content = content
         entry.revision += 1
+
+
+class WeakDrive(FakeDrive):
+    """No conditional writes or global idempotency table: never a safe canonical writer."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.conditional_write = False
+        self.idempotent_create = False
+
+    def _create(self, parent_id, name, mime_type, content, key):
+        self.idempotency.clear()
+        return super()._create(parent_id, name, mime_type, content, key)
+
+    def replace_content(self, file_id, content, *, expected_revision, operation_id):
+        self.applied_operations.clear()
+        return super().replace_content(file_id, content, expected_revision=None, operation_id=operation_id)

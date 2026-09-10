@@ -1,4 +1,4 @@
-schema_version: 1
+schema_version: 2
 instance:
   id: null
   name: null
@@ -16,7 +16,7 @@ skill:
   per_instance: true
   installed_reference: null
   routing_profile_revision: 1
-primary_topics: []
+primary_topic_ids: []
 schedules:
   daily:
     local_time: null
@@ -42,9 +42,21 @@ main_topic_refresh:
   lookback_overlap_hours: 12
 exploration:
   allow_adjacent_topics: true
-  max_new_automatic_roots_per_day: 10
+topic_governance:
+  max_active_adjacent_topics: 30
+  max_active_peripheral_topics: 15
+  peripheral_expiry: next_weekly_maintenance
+  archive_summary_target_words: [100, 200]
+  archive_recovery_retention_days: 7
+queue_admission:
+  max_active_automatic_items: 50
+  max_new_automatic_roots_per_day: 5
+  revalidate_pending_after_days: 14
+  automatic_candidate_deferral_days: 30
+  max_semantic_comparisons: 20
 maintenance:
   max_semantic_pages_per_week: 30
+  validation_lane_slot: 5
 reports:
   delivery: native-task-result
   upcoming_days: 7

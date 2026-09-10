@@ -22,6 +22,7 @@ class InitializationPlan:
     pages: list[WikiPage]
     queue_items: list[QueueItem]
     materials: list[IngestedMaterial]
+    max_research_attempts: int = 5
 
 
 def plan_initialization(setup: SetupInput, instance_id: str, created_at: str, *, max_attempts: int = 5) -> InitializationPlan:
@@ -53,7 +54,8 @@ def plan_initialization(setup: SetupInput, instance_id: str, created_at: str, *,
     for material in materials:
         questions.append((topics[0]["id"], f"What relevant supported information and limitations are present in supplied material {material.id}?"))
     queue_items: list[QueueItem] = []
-    for index, (topic_id, question) in enumerate(questions[:max_attempts], 1):
+    # The attempt allowance limits execution, not retention of initial questions.
+    for index, (topic_id, question) in enumerate(questions, 1):
         item_id = f"init-q-{sha256_text(f'{instance_id}\0{question}')[:16]}"
         queue_items.append(QueueItem(
             priority=40, id=item_id, expansion_priority=40, kind="investigation", question=question,
@@ -62,4 +64,7 @@ def plan_initialization(setup: SetupInput, instance_id: str, created_at: str, *,
             priority_reason="Bootstrap evidence for the explicitly approved topic/purpose",
             dedup_key=semantic_dedup_key(question, topic_id),
         ))
-    return InitializationPlan(pages, queue_items, materials)
+    if type(max_attempts) is not int or not 0 <= max_attempts <= 5:
+        from .errors import ValidationError
+        raise ValidationError("initialization supports at most five attempts")
+    return InitializationPlan(pages, queue_items, materials, max_attempts)

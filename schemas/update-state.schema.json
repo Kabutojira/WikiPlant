@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/update-state-v2.json",
+  "type": "object",
+  "required": ["schema_version", "phase", "instance_id", "operation_id", "target_identity", "intent_sha256", "previous_sha256", "evidence"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "phase": {"enum": ["TARGET_RESOLVED", "PREFLIGHT_VERIFIED", "WRITERS_QUIESCED", "BACKUP_VERIFIED", "RUNTIME_STAGED", "MIGRATION_VALIDATED", "DATA_MIGRATED", "HOST_BINDINGS_VERIFIED", "SMOKE_TESTED", "ACTIVATED", "COMPLETE"]},
+    "instance_id": {"type": "string", "minLength": 1},
+    "operation_id": {"type": "string", "minLength": 1},
+    "target_identity": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "intent_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "previous_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "evidence": {"type": "object", "minProperties": 1}
+  },
+  "additionalProperties": false
+}

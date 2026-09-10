@@ -66,7 +66,7 @@ class QueueItem:
         if not isinstance(self.related_page_ids, list) or not isinstance(self.parent_ids, list):
             raise ValidationError("queue list fields must be arrays")
         if not self.dedup_key:
-            self.dedup_key = semantic_dedup_key(self.question, self.topic_id, self.refresh_occurrence_id)
+            self.dedup_key = normalized_question_key(self.question, self.topic_id, self.refresh_occurrence_id)
 
     def to_row(self) -> dict[str, str]:
         self.validate()
@@ -95,8 +95,18 @@ class QueueItem:
         return item
 
 
-def semantic_dedup_key(question: str, topic_id: str, occurrence_id: str = "") -> str:
+def normalized_question_key(question: str, topic_id: str, occurrence_id: str = "") -> str:
+    """Lexical normalization only; semantic comparison belongs to recorded admission review."""
     return sha256_text("\0".join((normalize_question(question), topic_id.casefold(), occurrence_id)))[:24]
+
+
+# Explicit legacy import compatibility, not a claim of semantic equivalence.
+semantic_dedup_key = normalized_question_key
+
+
+def _unique_ids(items: list[QueueItem]) -> None:
+    if len({item.id for item in items}) != len(items):
+        raise ValidationError("duplicate stable queue ID")
 
 
 def read_queue(text: str) -> list[QueueItem]:
@@ -106,6 +116,7 @@ def read_queue(text: str) -> list[QueueItem]:
     if reader.fieldnames != QUEUE_HEADER:
         raise ValidationError("research queue header/order mismatch")
     items = [QueueItem.from_row(row) for row in reader]
+    _unique_ids(items)
     if items != sort_queue(items):
         raise ValidationError("research queue must be in canonical numeric order")
     return items
@@ -113,6 +124,7 @@ def read_queue(text: str) -> list[QueueItem]:
 
 def write_queue(items: Iterable[QueueItem]) -> str:
     sorted_items = sort_queue(list(items))
+    _unique_ids(sorted_items)
     output = io.StringIO(newline="")
     writer = csv.DictWriter(output, fieldnames=QUEUE_HEADER, lineterminator="\n")
     writer.writeheader()
@@ -135,7 +147,9 @@ def merge_duplicate(existing: QueueItem, incoming: QueueItem) -> QueueItem:
     if existing.dedup_key != incoming.dedup_key:
         raise ValidationError("cannot merge non-equivalent queue items")
     existing.priority = min(existing.priority, incoming.priority)
-    existing.expansion_priority = min(existing.expansion_priority, incoming.expansion_priority)
+    # An unvalidated low score must never replenish depth. Admission records can
+    # establish a genuine independent path before a separate explicit migration.
+    existing.expansion_priority = max(existing.expansion_priority, incoming.expansion_priority)
     existing.related_page_ids = list(dict.fromkeys(existing.related_page_ids + incoming.related_page_ids))
     existing.parent_ids = list(dict.fromkeys(existing.parent_ids + incoming.parent_ids))
     if incoming.due_at and (not existing.due_at or require_timestamp(incoming.due_at) < require_timestamp(existing.due_at)):
@@ -148,9 +162,17 @@ def merge_duplicate(existing: QueueItem, incoming: QueueItem) -> QueueItem:
 
 
 def deduplicate(items: Iterable[QueueItem]) -> list[QueueItem]:
+    items = list(items)
+    identities: dict[str, str] = {}
     by_key: dict[str, QueueItem] = {}
     for item in items:
         item.validate()
+        identity = json.dumps(item.to_row(), sort_keys=True)
+        if item.id in identities:
+            if identities[item.id] != identity:
+                raise ValidationError("stable queue ID reused for different content")
+            continue
+        identities[item.id] = identity
         if item.dedup_key in by_key:
             merge_duplicate(by_key[item.dedup_key], item)
         else:
@@ -164,6 +186,13 @@ def derived_child(
 ) -> QueueItem | None:
     if not parents:
         raise ValidationError("derived research requires causal parents")
+    if type(increment) is not int or increment < 1:
+        raise ValidationError("child increment must be a positive integer")
+    _unique_ids(parents)
+    if child_id in {p.id for p in parents}:
+        raise ValidationError("child cannot be its own causal parent")
+    for parent in parents:
+        parent.validate()
     inherited = min(parent.expansion_priority for parent in parents) + increment
     if inherited > 100:
         return None
@@ -241,8 +270,44 @@ def eligible(item: QueueItem, now: datetime) -> bool:
     return not item.not_before or require_timestamp(item.not_before) <= now
 
 
-def select_next(items: Iterable[QueueItem], budget: DailyBudget, now: datetime) -> QueueItem | None:
+def select_next(items: Iterable[QueueItem], budget: DailyBudget, now: datetime, *, validation_lane_slot: int = 5,
+                service_counts: dict[str, int] | None = None, ageing_days: int = 14,
+                selection_log: list[dict] | None = None, anchor_ids_by_topic: dict[str, list[str]] | None = None) -> QueueItem | None:
+    if type(validation_lane_slot) is not int or not 1 <= validation_lane_slot <= 5:
+        raise ValidationError("validation lane must occupy one of the first five slots")
+    if type(ageing_days) is not int or ageing_days < 1:
+        raise ValidationError("ageing interval must be positive")
     candidates = [item for item in items if eligible(item, now)]
+    _unique_ids(candidates)
+    next_slot = len(budget.reservations) + 1
+    if next_slot > 10 or not candidates:
+        return None
     if len(budget.reservations) >= 5:
         candidates = [item for item in candidates if item.priority == 0 and item.urgency_reason]
-    return sort_queue(candidates)[0] if candidates and len(budget.reservations) < 10 else None
+    urgent = sort_queue([item for item in candidates if item.priority == 0 and item.urgency_reason])
+    overdue = sort_queue([item for item in candidates if item.kind in {"validation", "contradiction"} and item.due_at and require_timestamp(item.due_at) <= now])
+    selected = None
+    reason = "numeric priority and stable deadline order"
+    if urgent:
+        selected = urgent[0]
+        reason = "genuinely urgent work takes precedence"
+        if next_slot == validation_lane_slot and overdue:
+            reason += "; overdue validation deferred by urgency"
+    elif next_slot == validation_lane_slot and overdue:
+        selected = overdue[0]
+        reason = "reserved ordinary slot serves overdue validation"
+    elif candidates:
+        # Ageing can serve old work without rewriting its research priority.
+        aged = [item for item in candidates if (now - require_timestamp(item.created_at)).days >= ageing_days]
+        if aged and service_counts is not None:
+            def served(item):
+                anchors = (anchor_ids_by_topic or {}).get(item.topic_id, [item.topic_id])
+                return max((service_counts.get(anchor, 0) for anchor in anchors), default=0)
+            selected = min(aged, key=lambda item: (served(item), require_timestamp(item.created_at), item.priority, item.id))
+            reason = "ageing and per-anchor service fairness"
+        else:
+            selected = sort_queue(candidates)[0]
+    if selection_log is not None:
+        selection_log.append({"slot": next_slot, "selected_id": selected.id if selected else None, "reason": reason,
+                              "overdue_validation_ids": [i.id for i in overdue], "validation_deferred_by_urgency": bool(urgent and overdue and next_slot == validation_lane_slot)})
+    return selected

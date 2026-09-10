@@ -74,6 +74,9 @@ class MonitoringTests(unittest.TestCase):
         with self.assertRaises(ValidationError):
             record.finish("no_material_update")
         record.reserve_query()
+        with self.assertRaises(ValidationError):
+            record.finish("no_material_update")
+        record.record_query(1, status="success", query="Synthetic topic update", result_reference="synthetic-search-1")
         record.finish("no_material_update")
         self.assertEqual(record.status, "no_material_update")
 

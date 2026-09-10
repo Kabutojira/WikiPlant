@@ -7,13 +7,14 @@ from typing import Iterable, Literal
 
 from .errors import SimulatedLostResponse, ValidationError
 from .records import Command, Receipt
-from .storage import DriveAdapter
+from .storage import DriveAdapter, create_artifact
+from .authorization import validate_user_authorization
 from .util import normalize_question, pretty_json, sha256_text
 
 
 @dataclass(frozen=True)
 class RoutingDecision:
-    operation: Literal["query", "current_query", "status", "save", "add", "track", "investigate", "configure", "pause", "resume"]
+    operation: str
     writes: bool
     requires_external_evidence: bool
 
@@ -51,24 +52,41 @@ def resolve_instance(request: str, profiles: Iterable[InstanceProfile], explicit
     return InstanceResolution(matches[0] if len(matches) == 1 else None, matches if len(matches) > 1 else ())
 
 
-def route_intent(text: str) -> RoutingDecision:
+def route_intent(text: str, *, authorization: dict | None = None, instance_id: str = "", target: str = "") -> RoutingDecision:
+    """Conservative proposal routing; only a separate host grant authorizes writes."""
+    if authorization is not None:
+        operation = authorization.get("operation", "")
+        grant = validate_user_authorization(authorization, instance_id=instance_id, operation=operation, target=target)
+        if grant.request_sha256 != sha256_text(text):
+            raise ValidationError("authorization does not match the current request")
+        if operation not in {"save", "add", "track", "investigate", "configure", "pause", "resume", "update"}:
+            raise ValidationError("unsupported authorized operation")
+        return RoutingDecision(operation, True, operation == "investigate")
     normalized = " " + normalize_question(text) + " "
+    # These exclusions improve proposals only; they are not a multilingual
+    # authorization classifier. Unrecognized language stays read-only.
+    if re.search(r"\b(not|never|dont|don't|non|no|ne|pas|nicht|without|if|imagine|hypothetical|explain|meaning|how|what does)\b", normalized) or any(c in text for c in ('"', '“', '”', '`')):
+        return RoutingDecision("query", False, False)
+    if re.search(r"\b(check.*updates|updates available)\b", normalized):
+        return RoutingDecision("check-updates", False, True)
+    if re.search(r"\b(upgrade|update this wikiplant|update it)\b", normalized):
+        return RoutingDecision("update", False, False)
     if re.search(r"\b(pause|stop schedules?)\b", normalized):
-        return RoutingDecision("pause", True, False)
+        return RoutingDecision("pause", False, False)
     if re.search(r"\b(resume|unpause)\b", normalized):
-        return RoutingDecision("resume", True, False)
+        return RoutingDecision("resume", False, False)
     if re.search(r"\b(configure|change the daily|change the weekly|change schedule)\b", normalized):
-        return RoutingDecision("configure", True, False)
+        return RoutingDecision("configure", False, False)
     if re.search(r"\b(status|installation state|last run)\b", normalized):
         return RoutingDecision("status", False, False)
     if re.search(r"\b(investigate|research this|look into)\b", normalized):
-        return RoutingDecision("investigate", True, True)
+        return RoutingDecision("investigate", False, True)
     if re.search(r"\badd\b", normalized):
-        return RoutingDecision("add", True, False)
+        return RoutingDecision("add", False, False)
     if re.search(r"\b(save|remember in|store in)\b", normalized):
-        return RoutingDecision("save", True, False)
+        return RoutingDecision("save", False, False)
     if re.search(r"\b(track)\b", normalized):
-        return RoutingDecision("track", True, False)
+        return RoutingDecision("track", False, False)
     if re.search(r"\b(current|latest|verify now|what changed)\b", normalized):
         return RoutingDecision("current_query", False, True)
     return RoutingDecision("query", False, False)
@@ -86,30 +104,24 @@ def observed_receipt(decision: RoutingDecision, *, durable_reference: str | None
     return "ACCEPTED_PENDING_MERGE"
 
 
-def durable_intake(adapter: DriveAdapter, inbox_folder_id: str, command: Command) -> tuple[Receipt, str]:
+def durable_intake(adapter: DriveAdapter, inbox_folder_id: str, command: Command, *, approved_root_id: str, expected_instance_id: str) -> tuple[Receipt, str]:
+    if command.instance_id != expected_instance_id:
+        raise ValidationError("command belongs to another bound WikiPlant instance")
     command.validate()
-    payload = pretty_json(asdict(command)).encode("utf-8")
-    filename = f"command-{command.id}.json"
+    payload = asdict(command)
+    filename = f"command-{sha256_text(command.id)}.json"
     key = f"{command.instance_id}:command:{command.id}"
-    try:
-        observed = adapter.create_file(inbox_folder_id, filename, "application/json", payload, idempotency_key=key)
-    except SimulatedLostResponse:
-        observed = adapter.create_file(inbox_folder_id, filename, "application/json", payload, idempotency_key=key)
-    readback = adapter.read_exact(observed.id)
-    if not readback.complete or readback.content != payload:
-        return "PARTIAL", observed.id
+    observed = create_artifact(adapter, approved_root_id, inbox_folder_id, filename, payload, key)
     return "ACCEPTED_PENDING_MERGE", observed.id
 
 
-def select_relevant_pages(query: str, page_summaries: Iterable[dict], limit: int = 8) -> list[dict]:
-    terms = set(normalize_question(query).split())
-    scored: list[tuple[int, str, dict]] = []
-    for page in page_summaries:
-        haystack = " ".join([str(page.get("title", "")), *map(str, page.get("aliases", [])), *map(str, page.get("relationships", []))])
-        score = len(terms.intersection(normalize_question(haystack).split()))
-        if score:
-            scored.append((-score, str(page.get("id", "")), page))
-    return [page for _, _, page in sorted(scored)[:limit]]
+def select_relevant_pages(query: str, page_summaries: Iterable[dict], limit: int = 8, *,
+                          semantic_selections: Iterable = (), retrieval_log: list[dict] | None = None) -> list[dict]:
+    from .retrieval import select_active_pages
+    result = select_active_pages(query, page_summaries, limit=limit, semantic_selections=semantic_selections)
+    if retrieval_log is not None:
+        retrieval_log.append(result.to_dict())
+    return result.pages
 
 
 def routing_profile_status(private_revision: int, installed_revision: int) -> str:

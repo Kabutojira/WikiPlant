@@ -35,12 +35,14 @@ class SetupInput:
     daily_time: str | None = None
     weekly_day: str | None = None
     weekly_time: str | None = None
+    confirmed_at: str | None = None
+    topic_authorizations: dict[str, dict] = field(default_factory=dict)
 
     def missing_fields(self) -> list[str]:
         missing: list[str] = []
         for name in REQUIRED_SETUP_FIELDS:
             value = getattr(self, name)
-            if value is None or value == [] or value == "":
+            if value is None or value == "" or (value == [] and name != "exclusions"):
                 missing.append(name)
         return missing
 

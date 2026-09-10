@@ -1,10 +1,12 @@
 # WikiPlant — implementation plan for Codex
 
-Specification revision: 1.0 · 2026-09-09  
+Specification revision: 2.0 · 2026-09-10
 Companion: `AGENTS.md` is authoritative for product constraints.  
 Delivery: a public, domain-neutral scaffold and a tested repository-URL installer for private, Drive-backed research instances.
 
 This is an implementation specification, not a claim that its components already exist. Check milestones only after implementing them and recording evidence. The previous Work + Drive PoC establishes the selected feasibility baseline; it does not establish production reliability or the new installer.
+
+The approved [HARDENING_PLAN.md](HARDENING_PLAN.md) now governs implementation in M0–M8 order. The v1 contracts and checked milestones below describe the original baseline, not hardening acceptance. V2 replaces editable primary-topic names with references to user anchors in `data/TOPICS.md`, adds shared scoped admission, terminal peripheral expiry and compact archival memory, requires snapshot-bound replay-safe writes and affirmative operation authorization, adds claim-specific evidence/challenge controls, separates represented/deferred report coverage, and uses detached release manifests and verified resumable upgrades. Existing data migrates conservatively; no legacy status or inferred topic becomes user authorization or verified evidence. See [docs/hardening-status.md](docs/hardening-status.md) for current contracts and actual evidence.
 
 ## 1. Approved product contract
 

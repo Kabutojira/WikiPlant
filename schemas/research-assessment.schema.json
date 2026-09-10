@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/research-assessment-v2.json",
+  "type": "object",
+  "allOf": [
+    {
+      "$ref": "evidence-assessment.schema.json"
+    }
+  ],
+  "required": [
+    "schema_version",
+    "kind",
+    "instance_id",
+    "item_id",
+    "attempt_id",
+    "run_id",
+    "source_files",
+    "claims",
+    "challenges",
+    "findings"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "kind": {
+      "const": "research_assessment"
+    },
+    "instance_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "item_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "attempt_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "run_id": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true
+}

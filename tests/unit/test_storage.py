@@ -6,6 +6,7 @@ from wikiplant.errors import ConflictError, SimulatedLostResponse, ValidationErr
 from wikiplant.fake_drive import FakeDrive
 from wikiplant.records import Command
 from wikiplant.intake import durable_intake
+from wikiplant.authorization import UserAuthorization, request_digest
 from wikiplant.storage import Binding, SafeWriter, validate_binding
 
 
@@ -22,7 +23,7 @@ class StorageTests(unittest.TestCase):
         binding = Binding("data/wiki/page.md", raw.id, "text/markdown", self.root.id)
         observed = validate_binding(self.drive, binding, self.root.id)
         writer = SafeWriter(self.drive, self.root.id, self.ops.id, self.inbox.id)
-        updated = writer.replace(binding, observed.content + "addition β\n".encode(), "op-1")
+        updated = writer.replace(binding, observed.content + "addition β\n".encode(), "op-1", base=observed)
         self.assertEqual(updated.id, raw.id)
         self.assertEqual(self.drive.read_exact(lookalike.id).content, b"converted")
         self.assertIn("manual α", updated.content.decode())
@@ -54,14 +55,15 @@ class StorageTests(unittest.TestCase):
         binding = Binding("data/wiki/page.md", raw.id, "text/markdown", self.root.id)
         self.drive.lose_next_write_response = True
         writer = SafeWriter(self.drive, self.root.id, self.ops.id, self.inbox.id)
-        result = writer.replace(binding, b"new", "op-1")
+        result = writer.replace(binding, b"new", "op-1", base=raw)
         self.assertEqual(result.content, b"new")
         self.assertEqual(self.drive.read_exact(raw.id).revision, 2)
 
     def test_overlap_conflict_preserves_durable_command(self):
         raw = self.drive.create_file(self.root.id, "queue.csv", "text/csv", b"header\n", idempotency_key="queue")
-        command = Command("cmd-1", "wp-test", "add", "explicit-user-message", "keep me", "2026-01-15T00:00:00+00:00")
-        receipt, command_id = durable_intake(self.drive, self.inbox.id, command)
+        grant = UserAuthorization("synthetic-turn-1", "wp-test", "add", "note-1", request_digest("Add keep me"), True, "Explicit add directive")
+        command = Command("cmd-1", "wp-test", "add", grant.to_dict(), "keep me", "2026-01-15T00:00:00+00:00", target="note-1")
+        receipt, command_id = durable_intake(self.drive, self.inbox.id, command, approved_root_id=self.root.id, expected_instance_id="wp-test")
         before = self.drive.read_exact(raw.id)
         self.drive.external_edit(raw.id, b"header\nmanual\n")
         with self.assertRaises(ConflictError):

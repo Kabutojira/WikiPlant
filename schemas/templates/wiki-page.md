@@ -1,6 +1,6 @@
 ---json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "id": "<stable-id>",
   "title": "<title>",
   "type": "concept",
@@ -11,7 +11,15 @@
   "last_checked_at": null,
   "source_ids": [],
   "research_ids": [],
-  "relationship_ids": []
+  "relationship_ids": [],
+  "claims": [],
+  "uncertainties": [],
+  "open_questions": [],
+  "goals": [],
+  "constraints": [],
+  "assumptions": [],
+  "dependencies": [],
+  "decision_context": []
 }
 ---
 
@@ -28,3 +36,5 @@
 <!-- wikiplant:managed:end -->
 
 ## User notes
+
+<user-owned notes>

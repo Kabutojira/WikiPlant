@@ -1,0 +1,143 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/topic-v2.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "label",
+    "classification",
+    "user_anchor_ids",
+    "parent_ids",
+    "direct_contribution",
+    "classification_reason",
+    "added_at",
+    "reviewed_at",
+    "lifecycle",
+    "scope_revision",
+    "authorization",
+    "may_spawn_research",
+    "expansion_priority"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9_.-]{0,127}$"
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1
+    },
+    "classification": {
+      "enum": [
+        "user",
+        "adjacent",
+        "peripheral"
+      ]
+    },
+    "lifecycle": {
+      "enum": [
+        "active",
+        "provisional",
+        "archived",
+        "retired"
+      ]
+    },
+    "scope_revision": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "authorization": {
+      "type": "object"
+    },
+    "may_spawn_research": {
+      "type": "boolean"
+    },
+    "expansion_priority": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "expires_at": {
+      "type": "string"
+    },
+    "user_anchor_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "parent_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "aliases": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "research_parent_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "lineage_root_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "related_page_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "classification": {
+            "const": "peripheral"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "expires_at"
+        ],
+        "properties": {
+          "may_spawn_research": {
+            "const": false
+          },
+          "expires_at": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    }
+  ],
+  "additionalProperties": true
+}

@@ -1,11 +1,74 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wikiplant.invalid/schemas/report-v1.json",
+  "$id": "https://wikiplant.invalid/schemas/report-v2.json",
   "type": "object",
-  "required": ["id", "report_key", "local_date", "included_record_ids", "config_revision", "runtime_release_id", "saved", "result_published", "notification_observed", "read"],
+  "required": [
+    "schema_version",
+    "report_key",
+    "represented_record_ids",
+    "deferred_record_ids",
+    "saved"
+  ],
   "properties": {
-    "id": {"type": "string"}, "report_key": {"type": "string"}, "local_date": {"type": "string", "format": "date"}, "included_record_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
-    "config_revision": {"type": "string"}, "runtime_release_id": {"type": "string"}, "saved": {"type": "boolean"}, "result_published": {"type": "boolean"}, "notification_observed": {"type": ["boolean", "null"]}, "read": {"type": ["boolean", "null"]}
+    "id": {
+      "type": "string"
+    },
+    "report_key": {
+      "type": "string"
+    },
+    "local_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "config_revision": {
+      "type": "string"
+    },
+    "runtime_release_id": {
+      "type": "string"
+    },
+    "saved": {
+      "type": "boolean"
+    },
+    "result_published": {
+      "type": "boolean"
+    },
+    "notification_observed": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "read": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": 2
+    },
+    "represented_record_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "deferred_record_ids": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "report_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
   },
   "additionalProperties": true
 }

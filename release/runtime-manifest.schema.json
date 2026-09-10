@@ -1,12 +1,23 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wikiplant.invalid/release/runtime-manifest-v1.json",
+  "$id": "https://wikiplant.invalid/release/runtime-manifest-v2.json",
   "type": "object",
-  "required": ["schema_version", "release_id", "source_commit", "status", "max_file_bytes", "max_total_bytes", "files"],
+  "required": ["schema_version", "release_id", "source_commit", "repository", "status", "distribution", "compatibility", "required_capabilities", "migrations", "rollback", "max_file_bytes", "max_total_bytes", "files"],
   "properties": {
-    "schema_version": {"const": 1}, "release_id": {"type": "string", "minLength": 1}, "source_commit": {"type": "string"}, "status": {"enum": ["draft", "released"]},
-    "max_file_bytes": {"type": "integer", "maximum": 512000}, "max_total_bytes": {"type": "integer", "maximum": 8000000},
-    "files": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["path", "sha256", "size", "encoding"], "properties": {"path": {"type": "string", "pattern": "^(?!/)(?!.*(?:^|/)\\.\\.(?:/|$)).+$"}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "size": {"type": "integer", "minimum": 0, "maximum": 512000}, "encoding": {"const": "utf-8"}}, "additionalProperties": false}}
+    "schema_version": {"const": 2},
+    "release_id": {"type": "string", "pattern": "^v?[0-9]+\\.[0-9]+\\.[0-9]+"},
+    "source_commit": {"type": "string"},
+    "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+    "status": {"enum": ["draft", "released"]},
+    "distribution": {"const": "detached-release-asset"},
+    "compatibility": {"type": "object", "required": ["read_schemas", "write_schema"], "properties": {"read_schemas": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "integer", "minimum": 1}}, "write_schema": {"type": "integer", "minimum": 1}}, "additionalProperties": false},
+    "required_capabilities": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "migrations": {"type": "array", "uniqueItems": true, "items": {"type": "string", "pattern": "^[0-9]+_to_[0-9]+$"}},
+    "rollback": {"type": "string", "minLength": 1},
+    "max_file_bytes": {"type": "integer", "minimum": 1, "maximum": 512000},
+    "max_total_bytes": {"type": "integer", "minimum": 1, "maximum": 8000000},
+    "files": {"type": "array", "minItems": 1, "maxItems": 4096, "items": {"type": "object", "required": ["path", "sha256", "size", "encoding"], "properties": {"path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}, "size": {"type": "integer", "minimum": 0, "maximum": 512000}, "encoding": {"const": "utf-8"}}, "additionalProperties": false}}
   },
+  "allOf": [{"if": {"properties": {"status": {"const": "released"}}}, "then": {"properties": {"source_commit": {"pattern": "^[a-f0-9]{40}$"}}}}],
   "additionalProperties": false
 }

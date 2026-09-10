@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/challenge-v2.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "claim_id",
+    "state",
+    "reason",
+    "coverage"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "id": {
+      "type": "string"
+    },
+    "claim_id": {
+      "type": "string"
+    },
+    "state": {
+      "enum": [
+        "not_required",
+        "not_searched",
+        "searched",
+        "partial",
+        "blocked"
+      ]
+    },
+    "reason": {
+      "type": "string",
+      "minLength": 1
+    },
+    "strongest_alternative": {
+      "type": "string"
+    },
+    "falsification_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "planned_queries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "executed_queries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "successful_queries": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "inspected_source_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "counterevidence": {
+      "type": "array",
+      "items": {
+        "$ref": "evidence-link.schema.json"
+      }
+    },
+    "applicability_limits": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "conclusion_change": {
+      "type": "string"
+    },
+    "coverage": {
+      "type": "string"
+    },
+    "max_queries": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "max_sources": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "deeper_question": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "deeper_disposition": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "parent_operation_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

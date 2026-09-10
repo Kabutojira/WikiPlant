@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/release-check-v2.json",
+  "type": "object",
+  "required": ["schema_version", "instance_id", "repository", "installed_version", "last_successful_check", "successful_week", "outcome", "known_versions", "notices", "attempts", "retry_at", "newest_stable", "newest_compatible", "error"],
+  "properties": {
+    "schema_version": {"const": 2}, "instance_id": {"type": "string", "minLength": 1}, "repository": {"type": "string", "minLength": 1}, "installed_version": {"type": "string"},
+    "last_successful_check": {"type": ["string", "null"]}, "successful_week": {"type": ["string", "null"]},
+    "outcome": {"enum": ["not_checked", "available", "up_to_date", "no_release", "failed", "security_alert"]},
+    "known_versions": {"type": "object"}, "notices": {"type": "object"}, "attempts": {"type": "object"}, "retry_at": {"type": ["string", "null"]},
+    "newest_stable": {"type": ["string", "null"]}, "newest_compatible": {"type": ["string", "null"]}, "error": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

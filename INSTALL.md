@@ -4,8 +4,8 @@ This file is the agent-readable bootstrap entry point. It is an instruction cont
 
 ## Trust and capability gate
 
-1. Resolve the supplied public repository URL to an immutable commit and read `release/runtime-manifest.json` at that commit.
-2. Accept only a manifest with `status: released`, a 40-character lowercase hexadecimal `source_commit` equal to the resolved commit, schema version 1, unique allowlisted relative paths, UTF-8 files, declared size limits, and matching SHA-256 hashes. Do not execute arbitrary repository files. A hash proves content identity, not publisher trust.
+1. Resolve the supplied public repository URL to its trusted repository identity and a published stable release. Fetch the detached manifest asset from that release, then fetch source payloads at its immutable `source_commit`. A newer branch commit is not a published release. The in-repository `release/runtime-manifest.json` is a non-installable development inventory.
+2. Accept only a detached manifest with `status: released`, matching repository/release/tag identity, a resolved 40-character lowercase hexadecimal source commit, schema version 2, explicit schema compatibility/capabilities/migrations/rollback limitations, unique allowlisted paths, UTF-8, bounded sizes and matching SHA-256 hashes. Verify runtime import closure. Record repository, actual provider release ID, tag, resolved commit and the exact detached manifest digest before copying. A changed known release identity is a consistency alert. A hash proves content identity, not publisher trust. Never execute release notes.
 3. Confirm that this surface exposes Google Drive raw-file create/read/content-update/list operations, private skill creation or installation guidance, and native scheduled-task creation/inspection. Record observed capability/tool names in the private instance. Do not invent absent APIs.
 4. If exact full-content reads, raw-file writes, or private destination safety cannot be established, stop before private seeding and return a resumable `BLOCKED` checkpoint.
 
@@ -41,7 +41,7 @@ Search the approved parent for a matching `INSTANCE.json`/installation record be
 - Create a new private subfolder under the approved parent and inspect inherited sharing before copying private content. Do not change permissions automatically.
 - Create canonical UTF-8 raw files (Markdown/CSV/JSON/YAML), never Google Docs/Sheets conversions. Map observed IDs and MIME types in `installation/drive-map.json`.
 - Copy only files listed by the verified runtime manifest into `runtime/<release-id>/`. Do not copy Git history, tests, fixtures, or development state.
-- Create `INSTANCE.json`, the sole `config.yml`, `data/SCOPE.md`, empty canonical data, and durable installation/checkpoint records.
+- Create `INSTANCE.json` with `source_repository` provenance, the sole `config.yml`, `data/SCOPE.md`, authoritative `data/TOPICS.md`, empty canonical data, and durable installation/checkpoint records. Record the setup tracking authorization for each user anchor; config monitors anchor IDs rather than copying editable topic names.
 - Generate exactly one already-personalized private skill. Its body binds the exact instance/root/config/map/runtime IDs; its description contains approved topic routing terms but no unnecessary private project text.
 - Treat a generated skill as a candidate until the host confirms installation and a fresh invocation verifies the binding.
 - Seed at most five initialization investigations, recording each reservation so resume cannot repeat them.
@@ -58,3 +58,7 @@ Then reply "continue installation". No files, IDs, or settings need re-entry.
 ```
 
 For unavailable scheduling, ask the user to open Scheduled and approve/save the two already prepared task cards, then resume by inspecting the resulting tasks. Never claim `ACTIVE`, a task ID, a notification, or a write that was not observed.
+
+## Later releases and updates
+
+The existing weekly task checks published release metadata independently of maintenance success. A saved notice contains the installed/newest/compatible versions and an exact pinned target. Failed or partial release reads cannot mean “up to date”. Check-only requests do not adopt code. “Update this WikiPlant” or “upgrade this WikiPlant” authorizes one resolved target and its routine migration steps; follow `skills/upgrade/WORKFLOW.md`. A notice is not software-update consent.

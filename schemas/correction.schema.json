@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/correction-v2.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "source_id",
+    "source_reference",
+    "observed_at",
+    "reason",
+    "affected_claim_ids",
+    "previous_statuses",
+    "kind"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "id": {
+      "type": "string"
+    },
+    "source_id": {
+      "type": "string"
+    },
+    "source_reference": {
+      "type": "string"
+    },
+    "observed_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "reason": {
+      "type": "string"
+    },
+    "affected_claim_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "previous_statuses": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "kind": {
+      "const": "correction"
+    }
+  },
+  "additionalProperties": true
+}

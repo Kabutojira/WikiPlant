@@ -3,4 +3,4 @@
 from .errors import ConflictError, ValidationError
 
 __all__ = ["ConflictError", "ValidationError"]
-__version__ = "0.1.0"
+__version__ = "0.2.0"

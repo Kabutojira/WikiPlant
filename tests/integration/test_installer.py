@@ -8,7 +8,9 @@ from wikiplant.fake_drive import FakeDrive
 from wikiplant.host import CapabilityProfile, FakeHost, set_instance_tasks_active
 from wikiplant.installer import InstallPhase, Installer
 from wikiplant.manifest import build_manifest
-from wikiplant.setup import SetupInput, consolidated_interview
+from wikiplant.setup import SetupInput, consolidated_interview, topic_records
+from wikiplant.authorization import UserAuthorization, request_digest
+from wikiplant.util import sha256_text
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -27,11 +29,17 @@ def capabilities(**overrides) -> CapabilityProfile:
 
 
 def setup(parent_id: str, name: str = "Domain Alpha") -> SetupInput:
-    return SetupInput(
+    values = SetupInput(
         instance_name=name, primary_topics=[{"name": "Synthetic topic", "aliases": ["test alias"]}],
         purpose="Test a private research instance", projects=["Synthetic project"], constraints=["No real claims"],
         exclusions=["Out-of-scope material"], drive_parent_id=parent_id, daily_time="07:00", weekly_day="monday", weekly_time="05:00",
+        confirmed_at="2026-01-15T00:00:00Z",
     )
+    instance_id = "wp-" + sha256_text(f"{parent_id}\0{name}")[:16]
+    values.topic_authorizations = {topic["id"]: UserAuthorization("synthetic-setup-turn", instance_id,
+        "track", topic["id"], request_digest("Track synthetic topic"), True,
+        "Synthetic affirmative installation scope").to_dict() for topic in topic_records(values)}
+    return values
 
 
 class InstallerTests(unittest.TestCase):

@@ -12,7 +12,7 @@ Install WikiPlant from <public-repository-url>.
 
 Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions a private Drive instance, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. No API key, local checkout, ZIP upload, GitHub account, or copied Drive file ID belongs in the supported user flow.
 
-This working tree is a development scaffold. A published installation source must have an immutable commit and a matching `release/runtime-manifest.json`; the installer rejects draft or mismatched releases.
+This working tree is the unpublished **0.2.0 development scaffold**, with version 2 data contracts and a conservative migration from version 1. No release or live upgrade is implied by the version change. A published installation source must have an immutable source commit and a matching detached release-manifest asset; `release/runtime-manifest.json` is only a draft development inventory. The installer rejects draft or mismatched releases.
 
 ## Developer verification
 
@@ -25,6 +25,8 @@ python -m wikiplant.cli e2e
 `pyproject.toml` adds `scripts/` to the package layout. Without installing the project, prefix commands with `PYTHONPATH=scripts`.
 
 Live cloud acceptance is intentionally separate. Follow [docs/verification.md](docs/verification.md) only in an explicitly approved, isolated Drive sandbox. Local tests do not prove private skill installation, connected-app write permissions, scheduled execution, or notification receipt.
+
+The [hardening evidence map](docs/hardening-status.md) records implemented contracts, regression results, the bounded assistant evaluation and remaining release gates. No production-readiness claim follows from local tests alone.
 
 ## Architecture constraints
 

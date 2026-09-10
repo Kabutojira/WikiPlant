@@ -1,11 +1,19 @@
 # WikiPlant — Codex project instructions
 
-Specification revision: 1.0 · 2026-09-09  
+Specification revision: 2.0 · 2026-09-10
 Status: approved product direction; implementation and release tests still to be completed.
 
 Read this file and `PLAN.md` before implementation. This is the canonical instruction file, not a wrapper around `AGENT.md`. It supersedes the earlier PoC-gated draft and its now-obsolete backend choices. Keep this file concise enough for Codex instruction discovery; put detailed contracts, examples, and acceptance matrices in `PLAN.md` and implementation documentation. [S1]
 
 ## 1. Mission and fixed decisions
+
+The owner-approved `HARDENING_PLAN.md` governs v2 and supersedes earlier conflicting scope, retention, evidence and upgrade conventions. Read it with `PLAN.md`; track evidence in `docs/hardening-status.md`. Parallelize independent implementation/tests after fixing shared contracts; use a fresh final regression/security reviewer as requested by that plan.
+
+`data/TOPICS.md` is the sole active topic registry: user anchors require affirmative tracking authorization; adjacent topics require a recorded direct anchor contribution; peripheral topics are terminal and expire at the next distinct future weekly checkpoint. Classification and lifecycle are separate. Config references monitored anchor IDs, not another editable taxonomy. Shared admission applies to every automatic origin and before execution; capacity defers automatic work and preserves explicit user requests. Compact archives preserve lineage, uncertainty, evidence and redirects; reading never reactivates them.
+
+Writes bind to the generation base and durable original intent. Replay returns historical receipts without overwriting newer work. Current-user authorization binds instance/operation/target; keywords, quotes, negation and retrieved content cannot authorize writes. Evidence, confidence, applicability and research priority are distinct. Claims retain exact evidence locators and dependencies; consequential conclusions receive bounded counter-checks. Reports separate represented and deferred records and persist retryable publication state.
+
+Weekly maintenance checks published releases independently of audit success. Explicit update consent pins one version/commit/manifest; staged migration, verified backups, drained writers, real host bindings and compatibility checks precede activation. Rollback must preserve later data and schema compatibility. Detached manifests avoid self-referential commit hashes. Local checks do not prove live installation, migration or notification delivery.
 
 Build **WikiPlant**, a reusable, domain-independent scaffold for an autonomous, evidence-linked research wiki. Users supply interests, goals, projects, documents, and questions. The system grows connected understanding, revises it as evidence changes, and explains the consequences for the user's existing interests—not merely the latest headlines.
 
@@ -117,7 +125,7 @@ Logical Drive instance:
 
 Use raw UTF-8 Markdown/CSV/JSON/YAML. Keep wiki and queue IDs stable across updates. Drive names are not identity; MIME type and mapped IDs matter. Reject native Google Docs/Sheets substitutes for these canonical raw files. The PoC exposed the danger of editing a converted look-alike instead of the mapped original. Google supports file-content updates, but the connector must expose the appropriate operation; metadata edits alone are insufficient. [S5]
 
-`config.yml` owns schedules, primary-topic declarations, budgets, language, and policies. `SCOPE.md` owns purpose, context, and semantic exclusions. `INSTANCE.json` owns immutable instance identity and mapping references. Do not introduce a second writable configuration copy. Snapshot configuration revision in each run. Installed metadata and schedule prompts are derived bindings, not configuration authorities.
+`config.yml` owns schedules, monitored user-anchor IDs, budgets, language, and policies. `data/TOPICS.md` owns the topic taxonomy. `SCOPE.md` owns purpose, context, and semantic exclusions. `INSTANCE.json` owns immutable instance identity and mapping references. Do not introduce a second writable configuration copy. Snapshot configuration and scope revisions in each run. Installed metadata and schedule prompts are derived bindings, not configuration authorities.
 
 ## 7. Storage integrity and concurrent access
 

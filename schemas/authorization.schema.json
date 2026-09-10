@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/authorization-v2.json",
+  "type": "object",
+  "required": ["schema_version", "user_turn_ref", "instance_id", "operation", "target", "request_sha256", "affirmative", "reason", "source_role", "negated", "quoted", "hypothetical", "informational"],
+  "properties": {
+    "schema_version": {"const": 2}, "user_turn_ref": {"type": "string", "minLength": 1},
+    "instance_id": {"type": "string", "minLength": 1}, "target": {"type": "string", "minLength": 1},
+    "operation": {"type": "string", "minLength": 1}, "request_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "affirmative": {"const": true}, "reason": {"type": "string", "minLength": 1}, "source_role": {"const": "current_user"},
+    "negated": {"const": false}, "quoted": {"const": false}, "hypothetical": {"const": false}, "informational": {"const": false}
+  },
+  "additionalProperties": false
+}

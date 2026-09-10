@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/update-intent-v2.json",
+  "type": "object",
+  "required": ["schema_version", "operation_id", "instance_id", "root_id", "target", "target_identity", "from_release", "from_read_schemas", "current_schema", "authorization", "manifest", "task_ids", "skill_reference", "channel", "bases", "replacements", "new_files", "runtime_files"],
+  "properties": {
+    "schema_version": {"const": 2}, "operation_id": {"type": "string", "minLength": 1}, "instance_id": {"type": "string", "minLength": 1},
+    "root_id": {"type": "string", "minLength": 1}, "target": {"type": "object"}, "target_identity": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "from_release": {"type": "string"}, "from_read_schemas": {"type": "array", "minItems": 1, "items": {"type": "integer", "minimum": 1}},
+    "current_schema": {"type": "integer", "minimum": 1}, "authorization": {"type": "object"}, "manifest": {"type": "object"},
+    "task_ids": {"type": "object", "required": ["daily", "weekly"], "properties": {"daily": {"type": "string", "minLength": 1}, "weekly": {"type": "string", "minLength": 1}}, "additionalProperties": false},
+    "skill_reference": {"type": "string", "minLength": 1}, "channel": {"enum": ["stable", "prerelease"]},
+    "bases": {"type": "object", "minProperties": 6, "description": "Exact-ID snapshots including INSTANCE, config, mapping, skill/task bindings and the previous hash-pinned runtime source-manifest."}, "replacements": {"type": "object"}, "new_files": {"type": "object"}, "runtime_files": {"type": "object", "minProperties": 1}
+  },
+  "additionalProperties": false
+}

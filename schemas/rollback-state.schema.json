@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/rollback-state-v2.json",
+  "type": "object",
+  "required": ["schema_version", "instance_id", "phase", "runtime_target", "restore_data", "previous_sha256", "rollback_intent_sha256", "evidence"],
+  "properties": {
+    "schema_version": {"const": 2}, "instance_id": {"type": "string", "minLength": 1},
+    "phase": {"enum": ["ROLLBACK_QUIESCED", "ROLLBACK_BINDINGS_VERIFIED", "ROLLBACK_COMPLETE"]},
+    "runtime_target": {"type": "string", "minLength": 1}, "restore_data": {"const": false},
+    "previous_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "rollback_intent_sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "evidence": {"type": "object", "minProperties": 1}
+  },
+  "additionalProperties": false
+}

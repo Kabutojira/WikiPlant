@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wikiplant.invalid/schemas/config-v1.json",
+  "$id": "https://wikiplant.invalid/schemas/config-v2.json",
   "type": "object",
-  "required": ["schema_version", "instance", "storage", "runtime", "skill", "primary_topics", "schedules", "initialization", "queue", "expansion", "main_topic_refresh"],
+  "required": ["schema_version", "instance", "storage", "runtime", "skill", "primary_topic_ids", "schedules", "initialization", "queue", "expansion", "main_topic_refresh", "topic_governance", "queue_admission"],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"const": 2},
     "instance": {
       "type": "object",
       "required": ["id", "name", "language", "timezone"],
@@ -13,11 +13,14 @@
     "storage": {"type": "object", "required": ["provider", "root_folder_id"], "properties": {"provider": {"const": "google-drive"}, "root_folder_id": {"type": "string", "minLength": 1}}},
     "runtime": {"type": "object", "required": ["release_id", "source_commit", "manifest_sha256", "upgrades"], "properties": {"upgrades": {"const": "explicit-user-request"}}},
     "skill": {"type": "object", "required": ["per_instance", "routing_profile_revision"], "properties": {"per_instance": {"const": true}, "routing_profile_revision": {"type": "integer", "minimum": 1}}},
-    "primary_topics": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["id", "name", "aliases", "related_page_ids"], "properties": {"id": {"type": "string", "minLength": 1}, "name": {"type": "string", "minLength": 1}, "aliases": {"type": "array", "items": {"type": "string"}}, "related_page_ids": {"type": "array", "items": {"type": "string"}}}}},
+    "primary_topics": false,
+    "primary_topic_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "topic_governance": {"type": "object", "required": ["max_active_adjacent_topics", "max_active_peripheral_topics", "peripheral_expiry"], "properties": {"max_active_adjacent_topics": {"type": "integer", "minimum": 1}, "max_active_peripheral_topics": {"type": "integer", "minimum": 1}, "peripheral_expiry": {"const": "next_weekly_maintenance"}, "archive_summary_target_words": {"type": "array", "minItems": 2, "maxItems": 2, "items": {"type": "integer", "minimum": 1}}}},
+    "queue_admission": {"type": "object", "required": ["max_active_automatic_items", "max_new_automatic_roots_per_day", "revalidate_pending_after_days", "automatic_candidate_deferral_days"], "properties": {"max_active_automatic_items": {"type": "integer", "minimum": 1}, "max_new_automatic_roots_per_day": {"type": "integer", "minimum": 1}, "revalidate_pending_after_days": {"type": "integer", "minimum": 1}, "automatic_candidate_deferral_days": {"type": "integer", "minimum": 1}}},
     "schedules": {"type": "object"},
     "initialization": {"type": "object", "properties": {"max_research_attempts": {"const": 5}}},
     "queue": {"type": "object", "properties": {"normal_daily_attempts": {"const": 5}, "urgent_daily_attempts_total": {"const": 10}, "urgent_priority": {"const": 0}}},
-    "expansion": {"type": "object", "properties": {"child_priority_increment": {"type": "integer", "minimum": 1}, "max_children_per_research": {"const": 3}, "preserve_expansion_priority": {"const": true}}},
+    "expansion": {"type": "object", "properties": {"child_priority_increment": {"type": "integer", "minimum": 1}, "max_children_per_research": {"type": "integer", "minimum": 1}, "preserve_expansion_priority": {"const": true}}},
     "main_topic_refresh": {"type": "object", "properties": {"enabled": {"const": true}, "outside_queue_budget": {"const": true}, "max_search_queries_per_topic": {"type": "integer", "minimum": 1}, "max_source_fetches_per_topic": {"type": "integer", "minimum": 1}}}
   },
   "additionalProperties": true

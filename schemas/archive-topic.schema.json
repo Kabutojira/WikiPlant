@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/archive-topic-v2.json",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "content_version",
+    "topic_id",
+    "title",
+    "aliases",
+    "previous_classification",
+    "original_anchor_ids",
+    "parent_ids",
+    "scope_revision",
+    "created_at",
+    "last_investigation_at",
+    "archived_at",
+    "reason",
+    "summary",
+    "key_claim_refs",
+    "evidence_refs",
+    "negative_findings",
+    "uncertainty",
+    "applicability_limits",
+    "research_parent_ids",
+    "lineage_root_ids",
+    "expansion_priority",
+    "reactivation_conditions",
+    "lifecycle",
+    "may_spawn_research"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 2
+    },
+    "content_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "lifecycle": {
+      "const": "archived"
+    },
+    "may_spawn_research": {
+      "const": false
+    },
+    "previous_classification": {
+      "enum": [
+        "user",
+        "adjacent",
+        "peripheral"
+      ]
+    },
+    "expansion_priority": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1
+    },
+    "last_investigation_at": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "additionalProperties": true
+}

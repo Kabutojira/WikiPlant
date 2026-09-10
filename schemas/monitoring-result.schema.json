@@ -1,12 +1,139 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wikiplant.invalid/schemas/monitoring-result-v1.json",
+  "$id": "https://wikiplant.invalid/schemas/monitoring-result-v2.json",
   "type": "object",
-  "required": ["instance_id", "local_date", "topic_id", "coverage_start", "coverage_end", "max_queries", "max_sources", "queries_used", "sources_used", "status", "findings", "limitations"],
+  "required": [
+    "instance_id",
+    "local_date",
+    "topic_id",
+    "coverage_start",
+    "coverage_end",
+    "max_queries",
+    "max_sources",
+    "queries_used",
+    "sources_used",
+    "status",
+    "findings",
+    "limitations",
+    "schema_version",
+    "query_results",
+    "source_results",
+    "successful_watermark",
+    "evidence_assessment_ref",
+    "claim_ids",
+    "challenge_ids",
+    "affected_page_ids"
+  ],
   "properties": {
-    "instance_id": {"type": "string"}, "local_date": {"type": "string", "format": "date"}, "topic_id": {"type": "string"}, "coverage_start": {"type": "string", "format": "date-time"}, "coverage_end": {"type": "string", "format": "date-time"},
-    "max_queries": {"type": "integer", "minimum": 1}, "max_sources": {"type": "integer", "minimum": 1}, "queries_used": {"type": "integer", "minimum": 0}, "sources_used": {"type": "integer", "minimum": 0},
-    "status": {"enum": ["in_progress", "complete", "no_material_update", "partial", "blocked"]}, "findings": {"type": "array", "items": {"type": "string"}}, "limitations": {"type": "array", "items": {"type": "string"}}
+    "instance_id": {
+      "type": "string"
+    },
+    "local_date": {
+      "type": "string",
+      "format": "date"
+    },
+    "topic_id": {
+      "type": "string"
+    },
+    "coverage_start": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "coverage_end": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "max_queries": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "max_sources": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "queries_used": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "sources_used": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "status": {
+      "enum": [
+        "in_progress",
+        "complete",
+        "no_material_update",
+        "partial",
+        "blocked"
+      ]
+    },
+    "findings": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "schema_version": {
+      "const": 2
+    },
+    "query_results": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "status"
+        ]
+      }
+    },
+    "source_results": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "status"
+        ]
+      }
+    },
+    "successful_watermark": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "claim_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "challenge_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "affected_page_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "uniqueItems": true
+    },
+    "evidence_assessment_ref": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
   },
   "additionalProperties": true
 }

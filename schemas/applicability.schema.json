@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/applicability-v2.json",
+  "type": "object",
+  "required": [
+    "finding_id",
+    "project_id",
+    "status",
+    "affected_assumption_ids",
+    "evidence_refs",
+    "reasons",
+    "unmet_conditions",
+    "next_step"
+  ],
+  "properties": {
+    "finding_id": {
+      "type": "string"
+    },
+    "project_id": {
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "applicable",
+        "potentially_applicable",
+        "not_applicable",
+        "unknown"
+      ]
+    },
+    "affected_assumption_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "evidence_refs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "reasons": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "unmet_conditions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "next_step": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "additionalProperties": true
+}

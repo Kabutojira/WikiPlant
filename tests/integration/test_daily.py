@@ -4,12 +4,17 @@ import unittest
 from datetime import datetime, timezone
 
 from wikiplant.monitoring import MonitoringLedger
-from wikiplant.orchestrator import run_daily
+from wikiplant.orchestrator import run_daily as execute_daily
 from wikiplant.queue import DailyBudget, QueueItem
 from wikiplant.records import ResearchResult
 
 
 NOW = datetime(2026, 1, 15, 12, tzinfo=timezone.utc)
+
+
+def run_daily(**kwargs):
+    """Legacy callback policy tests are explicitly simulations; persisted tests are separate."""
+    return execute_daily(**kwargs, simulate=True)
 
 
 def queue_item(identifier: str, priority: int) -> QueueItem:
@@ -37,6 +42,7 @@ class DailyOperationTests(unittest.TestCase):
             )
             if created:
                 record.reserve_query()
+                record.record_query(1, status="success", query="Synthetic update", result_reference="synthetic-search")
                 record.finish("no_material_update")
             return record
         return callback

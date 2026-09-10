@@ -1,11 +1,70 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wikiplant.invalid/schemas/command-v1.json",
+  "$id": "https://wikiplant.invalid/schemas/command-v2.json",
   "type": "object",
-  "required": ["id", "instance_id", "operation", "authorization", "submitted_content", "submitted_at", "outcome"],
+  "required": [
+    "id",
+    "instance_id",
+    "operation",
+    "authorization",
+    "submitted_content",
+    "submitted_at",
+    "outcome",
+    "target",
+    "schema_version"
+  ],
   "properties": {
-    "id": {"type": "string", "minLength": 1}, "instance_id": {"type": "string", "minLength": 1}, "operation": {"enum": ["save", "add", "track", "investigate", "configure", "pause", "resume"]},
-    "authorization": {"type": "string", "pattern": "^explicit-user"}, "submitted_content": {"type": "string"}, "submitted_at": {"type": "string", "format": "date-time"}, "outcome": {"enum": ["pending", "applied", "blocked", "rejected"]}, "canonical_reference": {"type": ["string", "null"]}
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "instance_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "operation": {
+      "enum": [
+        "save",
+        "add",
+        "track",
+        "investigate",
+        "configure",
+        "pause",
+        "resume",
+        "update"
+      ]
+    },
+    "authorization": {
+      "$ref": "authorization.schema.json"
+    },
+    "submitted_content": {
+      "type": "string"
+    },
+    "submitted_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "outcome": {
+      "enum": [
+        "pending",
+        "applied",
+        "blocked",
+        "rejected"
+      ]
+    },
+    "canonical_reference": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "schema_version": {
+      "const": 2
+    },
+    "target": {
+      "type": "string",
+      "minLength": 1
+    }
   },
   "additionalProperties": false
 }

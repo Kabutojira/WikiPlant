@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import unittest
 
-from wikiplant.errors import ValidationError
+from wikiplant.errors import CapabilityError, ValidationError
+from wikiplant.authorization import UserAuthorization, request_digest
 from wikiplant.intake import InstanceProfile, observed_receipt, resolve_instance, route_intent, routing_profile_status, select_relevant_pages
 from wikiplant.maintenance import MaintenanceState, semantic_audit, structural_lint
 from wikiplant.records import Claim, DeliveryState, SourceRecord
@@ -12,7 +13,8 @@ from wikiplant.wiki import WikiPage, applicability_analysis, append_change_log, 
 
 
 def claim(identifier: str, value: str, *, start=None, end=None, status="supported") -> Claim:
-    return Claim(identifier, "synthetic pump", "rated pressure", value, start, end, ["source-1"] if status != "user_note" else [], "medium", status)
+    # Historical v1 fixture: source IDs alone do not satisfy the v2 promotion policy.
+    return Claim(identifier, "synthetic pump", "rated pressure", value, start, end, ["source-1"] if status != "user_note" else [], "medium", status, schema_version=1)
 
 
 def page(identifier="page-1", claims=None, page_type="concept") -> WikiPage:
@@ -68,12 +70,16 @@ class WikiTests(unittest.TestCase):
 class RoutingAndReportTests(unittest.TestCase):
     def test_passive_mention_is_read_only_and_save_is_explicit(self):
         self.assertFalse(route_intent("Unitree has a new model").writes)
-        self.assertTrue(route_intent("Save this note in my wiki").writes)
+        self.assertFalse(route_intent("Save this note in my wiki").writes)  # Routing proposes; host turn grant authorizes.
+        def authorized(text, operation):
+            grant = UserAuthorization("synthetic-turn", "wp-test", operation, "note", request_digest(text), True, "Explicit directive")
+            return route_intent(text, authorization=grant.to_dict(), instance_id="wp-test", target="note")
+        self.assertTrue(authorized("Save this note in my wiki", "save").writes)
         self.assertEqual(route_intent("Add this entity to my wiki").operation, "add")
         self.assertTrue(route_intent("What changed since yesterday?").requires_external_evidence)
         self.assertEqual(route_intent("Show installation status").operation, "status")
-        self.assertEqual(observed_receipt(route_intent("Investigate this"), durable_reference="q-1", canonical_merged=True), "QUEUED")
-        self.assertEqual(observed_receipt(route_intent("Save this"), durable_reference="cmd-1"), "ACCEPTED_PENDING_MERGE")
+        self.assertEqual(observed_receipt(authorized("Investigate this", "investigate"), durable_reference="q-1", canonical_merged=True), "QUEUED")
+        self.assertEqual(observed_receipt(authorized("Save this", "save"), durable_reference="cmd-1"), "ACCEPTED_PENDING_MERGE")
 
     def test_bounded_retrieval_and_host_metadata_status(self):
         pages = [
@@ -106,6 +112,8 @@ class RoutingAndReportTests(unittest.TestCase):
         self.assertLess(text.index("Major: material"), text.index("Topic check: no material update"))
         self.assertIn("Event today", text)
         self.assertIn("Urgent overflow", text)
+        self.assertEqual(len(pending_evidence(records, [state])), 4)  # Rendering is not persistence.
+        state.saved = True
         self.assertEqual(pending_evidence(records, [state]), [])
 
     def test_delivery_states_are_separate(self):
@@ -152,19 +160,21 @@ class MaintenanceAndUpgradeTests(unittest.TestCase):
 
     def test_update_check_does_not_adopt_and_upgrade_preserves_data(self):
         image = InstanceImage("wp-test", "1.0", {"code": b"old"}, {"notes": b"keep"}, {"scope": "keep"}, "1.0", "1.0")
-        check = available_update("1.0", "1.1")
+        check = available_update("1.0.0", "1.1.0")
         self.assertFalse(check["adopted"])
-        checkpoint = apply_upgrade(image, "1.1", {"code": b"new"}, explicit_user_request=True)
-        self.assertEqual(checkpoint.stage, "complete")
+        with self.assertRaises(CapabilityError):
+            apply_upgrade(image, "1.1", {"code": b"new"}, explicit_user_request=True)
+        self.assertEqual(image.runtime_files["code"], b"old")
         self.assertEqual(image.data_files["notes"], b"keep")
         self.assertFalse(image.paused)
 
     def test_failed_upgrade_restores_runtime_without_deleting_new_data(self):
         image = InstanceImage("wp-test", "1.0", {"code": b"old"}, {"new-research": b"keep"}, {}, "1.0", "1.0")
-        checkpoint = apply_upgrade(image, "1.1", {"code": b"new"}, explicit_user_request=True, fail_stage="runtime_written")
+        with self.assertRaises(CapabilityError):
+            apply_upgrade(image, "1.1", {"code": b"new"}, explicit_user_request=True, fail_stage="runtime_written")
         self.assertEqual(image.runtime_files["code"], b"old")
         self.assertEqual(image.data_files["new-research"], b"keep")
-        self.assertIsNotNone(checkpoint.error)
+        self.assertEqual(image.skill_binding_release, "1.0")
 
     def test_private_export_is_detached(self):
         image = InstanceImage("wp-test", "1.0", {"code": b"old"}, {"notes": b"keep"}, {}, "1.0", "1.0")

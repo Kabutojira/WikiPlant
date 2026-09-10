@@ -23,6 +23,9 @@ Use only a newly approved isolated Drive sandbox; never the owner's PoC or produ
 7. Replay the completed logical run. Confirm no extra primary-topic allowance, queue reservation, children, or report.
 8. Force daily/daily and daily/weekly overlap. Accept only proved serialization or fail-closed durable preservation.
 9. Record notification delivery only if the host or user actually observes it. Clean up only temporary acceptance tasks.
+10. Observe weekly expiry/archival: inspect retained source/user notes, capsule redirects and removed automatic obligations. Verify bounded archive retrieval without reactivation.
+11. Observe a weekly release check and saved update notice. Confirm no runtime adoption; explicitly request the pinned candidate in this sandbox, then inspect checkpoints, migrated raw IDs/counts, preserved budgets, the same installed skill/two tasks and fresh invocation.
+12. Inject an approved update interruption, resume from stored intent, and test compatible recovery while preserving later notes/intake. Observe a later scheduled run on the activated runtime. Keep each host capability and result receipt separate from local fake outcomes.
 
 Use `PASS`, `FAIL`, `PARTIAL`, `BLOCKED`, `NOT RUN`, or `PENDING`. A Drive report proves storage; a task result proves publication; neither proves a received push/email.
 

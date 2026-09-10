@@ -17,6 +17,10 @@ from .skillgen import SkillBinding, generate_skill
 from .storage import FOLDER_MIME, expected_mime
 from .util import pretty_json, sha256_bytes, sha256_text, slugify
 from .yamlio import dumps as yaml_dumps, loads as yaml_loads
+from .topics import Topic, TopicRegistry
+from .authorization import validate_user_authorization
+from .util import require_timestamp
+from .calendar import write_calendar
 
 
 class InstallPhase(IntEnum):
@@ -49,8 +53,11 @@ class InstallState:
     skill_reference: str | None = None
     task_ids: dict[str, str] = field(default_factory=dict)
     initialization_completed_ids: list[str] = field(default_factory=list)
+    initialization_reserved_ids: list[str] = field(default_factory=list)
     initialization_allowance_consumed: int = 0
     first_run_verified: bool = False
+    source_identity: dict = field(default_factory=dict)
+    setup_sha256: str = ""
 
     def completed(self, phase: InstallPhase) -> bool:
         if self.phase == InstallPhase.BLOCKED.name:
@@ -76,8 +83,14 @@ class Installer:
     def _derive_instance_id(self, setup: SetupInput) -> str:
         return "wp-" + sha256_text(f"{self.parent_id}\0{setup.instance_name}")[:16]
 
-    def _load_or_create_state(self, setup: SetupInput) -> InstallState:
+    def _load_or_create_state(self, setup: SetupInput, manifest: dict) -> InstallState:
         instance_id = self._derive_instance_id(setup)
+        source_identity = {key: manifest[key] for key in ("repository", "release_id", "source_commit")}
+        source_identity["manifest_sha256"] = sha256_bytes(manifest_bytes(manifest))
+        setup_identity = asdict(setup)
+        setup_identity.pop("topic_authorizations", None)
+        setup_identity.pop("confirmed_at", None)
+        setup_hash = sha256_text(pretty_json(setup_identity))
         root = self._retry_create(
             self.drive.create_folder,
             self.parent_id,
@@ -102,8 +115,11 @@ class Installer:
         data = json.loads(raw.content.decode("utf-8"))
         if data.get("instance_id"):
             state = InstallState(**data)
+            if state.source_identity != source_identity or state.setup_sha256 != setup_hash:
+                raise ValidationError("installation resume cannot change pinned source or approved setup; use explicit update/configure")
         else:
-            state = InstallState(instance_id=instance_id, root_id=root.id, state_file_id=state_file.id)
+            state = InstallState(instance_id=instance_id, root_id=root.id, state_file_id=state_file.id,
+                                 source_identity=source_identity, setup_sha256=setup_hash)
             self._save_state(state)
         if state.instance_id != instance_id or state.root_id != root.id:
             raise ValidationError("ambiguous installation identity")
@@ -168,29 +184,43 @@ class Installer:
             "data/wiki/entities", "data/wiki/concepts", "data/wiki/projects", "data/wiki/syntheses", "data/research",
             "data/monitoring", "data/reports", "data/state", "data/state/runs", "data/state/operations", "data/state/inbox",
             "data/state/deliveries", "data/state/maintenance", "data/state/calendar", "backups",
+            "data/archive", "data/archive/topics", "data/archive/indexes", "data/state/scope-changes",
+            "data/state/archive-operations", "data/state/updates",
         ]
         for logical in folder_paths:
             parent_path = logical.rsplit("/", 1)[0] if "/" in logical else ""
             folders[logical] = self._folder(state, folders[parent_path], logical)
         topics = topic_records(setup)
+        require_timestamp(setup.confirmed_at, "setup confirmed_at")
+        registry = TopicRegistry(state.instance_id, 1, [Topic(
+            id=t["id"], label=t["name"], classification="user", user_anchor_ids=[t["id"]], parent_ids=[],
+            direct_contribution="Explicit user interest supplied at setup", classification_reason="Approved initial tracking scope",
+            added_at=setup.confirmed_at, reviewed_at=setup.confirmed_at, scope_revision=1, aliases=t["aliases"],
+            authorization=setup.topic_authorizations[t["id"]], related_page_ids=t["related_page_ids"],
+        ) for t in topics])
         config = {
-            "schema_version": 1,
+            "schema_version": 2,
             "instance": {"id": state.instance_id, "name": setup.instance_name, "language": setup.language, "timezone": setup.timezone},
             "storage": {"provider": "google-drive", "root_folder_id": root},
             "runtime": {"release_id": manifest["release_id"], "source_commit": manifest["source_commit"], "manifest_sha256": sha256_bytes(manifest_bytes(manifest)), "upgrades": "explicit-user-request"},
             "skill": {"per_instance": True, "installed_reference": None, "routing_profile_revision": 1},
-            "primary_topics": topics,
+            "primary_topic_ids": [t["id"] for t in topics],
             "schedules": {"daily": {"local_time": setup.daily_time}, "weekly": {"weekday": setup.weekly_day, "local_time": setup.weekly_time}},
             "initialization": {"max_research_attempts": 5},
             "queue": {"normal_daily_attempts": 5, "urgent_daily_attempts_total": 10, "urgent_priority": 0, "max_attempts_per_item": 3},
             "expansion": {"child_priority_increment": 20, "max_children_per_research": 3, "preserve_expansion_priority": True},
             "main_topic_refresh": {"enabled": True, "outside_queue_budget": True, "max_search_queries_per_topic": 4, "max_source_fetches_per_topic": 8, "lookback_overlap_hours": 12},
-            "exploration": {"allow_adjacent_topics": True, "max_new_automatic_roots_per_day": 10},
+            "exploration": {"allow_adjacent_topics": True},
+            "topic_governance": {"max_active_adjacent_topics": 30, "max_active_peripheral_topics": 15,
+                                 "peripheral_expiry": "next_weekly_maintenance", "archive_summary_target_words": [100, 200]},
+            "queue_admission": {"max_active_automatic_items": 50, "max_new_automatic_roots_per_day": 5,
+                                "revalidate_pending_after_days": 14, "automatic_candidate_deferral_days": 30},
+            "adversarial_review": {"validation_lane_slot": 5, "max_queries_per_investigation": 2},
             "maintenance": {"max_semantic_pages_per_week": 30},
             "reports": {"delivery": "native-task-result", "upcoming_days": 7, "include_quiet_day_report": True},
             "sources": {"retention": "metadata-and-permitted-extracts", "retain_full_text": False},
         }
-        validate_config(config)
+        validate_config(config, topic_registry=registry)
         scope = (
             f"# {setup.instance_name}\n\n## Purpose\n\n{setup.purpose}\n\n## Projects\n\n" +
             "\n".join(f"- {v}" for v in setup.projects) + "\n\n## Constraints\n\n" +
@@ -201,8 +231,9 @@ class Installer:
         initial = {
             "config.yml": yaml_dumps(config).encode(),
             "data/SCOPE.md": scope.encode(),
+            "data/TOPICS.md": registry.render().encode(),
             "data/research_queue.csv": b"priority,id,expansion_priority,kind,question,topic_id,related_page_ids,parent_ids,lineage_root_id,origin,origin_ref,created_at,not_before,due_at,status,attempts,priority_reason,urgency_reason,dedup_key,refresh_occurrence_id\n",
-            "data/calendar.csv": b"id,kind,title,start_date,start_at,end_at,timezone,date_precision,status,related_page_ids,source_refs,refresh_question,priority,expansion_priority,recurrence,lead_days,origin_ref,updated_at\n",
+            "data/calendar.csv": write_calendar([]).encode(),
             "data/wiki/index.md": b"# Wiki index\n\nNo pages have been created yet.\n",
             "data/wiki/log.md": b"# Wiki change log\n",
             "installation/setup-summary.md": setup_summary(setup).encode(),
@@ -218,6 +249,7 @@ class Installer:
             "config_file_id": state.config_file_id, "drive_map_file_id": None,
             "runtime_release_id": manifest["release_id"], "source_commit": manifest["source_commit"],
             "created_by": "wikiplant-repository-bootstrap",
+            "source_repository": manifest.get("repository", ""),
         }
         instance_id = self._file(state, root, "INSTANCE.json", pretty_json(instance_record).encode())
         files["INSTANCE.json"] = {"id": instance_id, "mime_type": "application/json"}
@@ -282,10 +314,31 @@ class Installer:
         stop_after: InstallPhase | None = None,
     ) -> InstallState:
         setup.validate_complete()
+        for topic in topic_records(setup):
+            grant = setup.topic_authorizations.get(topic["id"], {})
+            validate_user_authorization(grant, instance_id=self._derive_instance_id(setup), operation="track", target=topic["id"])
+        require_timestamp(setup.confirmed_at, "setup confirmed_at")
         if setup.drive_parent_id != self.parent_id:
             raise ValidationError("approved Drive destination does not match installer parent")
         verify_manifest(self.source_root, manifest, resolved_commit=resolved_commit)
-        state = self._load_or_create_state(setup)
+        # Sharing and capabilities are mutable external state, never a reusable
+        # checkpoint. Recheck BEFORE writing even an installation record.
+        fresh_state = InstallState(instance_id=self._derive_instance_id(setup))
+        if not self.host.capabilities.storage_ready():
+            return self._block(fresh_state, "Google Drive raw create/full-read/content-update/pagination capabilities are required", InstallPhase.DISCOVERED)
+        ancestor = self.parent_id
+        visited = set()
+        while ancestor:
+            if ancestor in visited:
+                raise ValidationError("Drive destination ancestry cycle")
+            visited.add(ancestor)
+            snapshot = self.drive.read_exact(ancestor)
+            if not snapshot.complete or not snapshot.within_scope:
+                return self._block(fresh_state, "destination scope/sharing cannot be verified", InstallPhase.DISCOVERED)
+            if ancestor in self.drive.public_parents:
+                return self._block(fresh_state, "approved Drive destination inherits broad/public sharing", InstallPhase.DISCOVERED)
+            ancestor = snapshot.parent_id
+        state = self._load_or_create_state(setup, manifest)
         if state.phase == InstallPhase.BLOCKED.name:
             state.phase = state.last_completed_phase
             state.blocked_reason = None
@@ -294,8 +347,6 @@ class Installer:
         if not state.completed(InstallPhase.CAPABILITIES_CHECKED):
             if not self.host.capabilities.storage_ready():
                 return self._block(state, "Google Drive raw create/full-read/content-update/pagination capabilities are required", InstallPhase.DISCOVERED)
-            if self.parent_id in self.drive.public_parents:
-                return self._block(state, "approved Drive destination inherits broad/public sharing", InstallPhase.CAPABILITIES_CHECKED)
             self._advance(state, InstallPhase.CAPABILITIES_CHECKED)
         if stop_after == InstallPhase.CAPABILITIES_CHECKED:
             return state
@@ -356,18 +407,24 @@ class Installer:
             return state
         if not state.completed(InstallPhase.SEEDED):
             seed_list = list(seed_results)
-            if len(seed_list) > 5:
+            seed_ids = [str(result.get("id") or f"init-{index}") for index, result in enumerate(seed_list, 1)]
+            if len(seed_ids) != len(set(seed_ids)):
+                raise ValidationError("duplicate initial investigation identity")
+            if len(seed_list) > 5 or len(set(state.initialization_reserved_ids) | set(state.initialization_completed_ids) | set(seed_ids)) > 5:
                 raise ValidationError("initialization may complete at most five investigations")
             research_folder = mapping["folders"]["data/research"]
             for index, result in enumerate(seed_list, 1):
                 rid = str(result.get("id") or f"init-{index}")
                 if rid in state.initialization_completed_ids:
                     continue
+                if rid not in state.initialization_reserved_ids:
+                    state.initialization_reserved_ids.append(rid)
+                    state.initialization_allowance_consumed += 1
+                    self._save_state(state)
                 payload = dict(result)
                 payload.update({"id": rid, "origin": "initialization", "status": "complete"})
                 self._file(state, research_folder, f"data/research/{rid}.json", pretty_json(payload).encode(), "application/json")
                 state.initialization_completed_ids.append(rid)
-                state.initialization_allowance_consumed += 1
                 self._save_state(state)
             self._advance(state, InstallPhase.SEEDED)
         if stop_after == InstallPhase.SEEDED:

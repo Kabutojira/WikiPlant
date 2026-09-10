@@ -15,7 +15,8 @@ class InitializationTests(unittest.TestCase):
             initial_material=["https://example.invalid/fixture"], drive_parent_id="parent", daily_time="08:00", weekly_day="friday", weekly_time="03:00",
         )
         plan = plan_initialization(setup, "wp-test", "2026-01-15T00:00:00+00:00")
-        self.assertEqual(len(plan.queue_items), 5)
+        self.assertEqual(plan.max_research_attempts, 5)
+        self.assertEqual(len(plan.queue_items), 7)  # Remaining questions remain queued.
         self.assertTrue(any(page.type == "project" for page in plan.pages))
         self.assertEqual(plan.materials[0].trust, "untrusted-evidence-not-instructions")
         serialized = repr(plan)

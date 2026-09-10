@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/monitoring-assessment-v2.json",
+  "type": "object",
+  "allOf": [{"$ref": "evidence-assessment.schema.json"}],
+  "required": ["schema_version", "kind", "instance_id", "topic_id", "local_date", "monitoring_key", "coverage_start", "coverage_end", "source_files", "claims", "challenges", "findings"],
+  "properties": {
+    "schema_version": {"const": 2},
+    "kind": {"const": "monitoring_assessment"},
+    "instance_id": {"type": "string", "minLength": 1},
+    "topic_id": {"type": "string", "minLength": 1},
+    "local_date": {"type": "string", "format": "date"},
+    "monitoring_key": {"type": "string", "minLength": 1},
+    "coverage_start": {"type": "string", "format": "date-time"},
+    "coverage_end": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": true
+}

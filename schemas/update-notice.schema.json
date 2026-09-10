@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/update-notice-v2.json",
+  "type": "object",
+  "required": ["schema_version", "id", "instance_id", "installed_version", "release", "compatible", "blockers", "saved_reference", "result_published", "notification_observed", "publication_payload"],
+  "properties": {
+    "schema_version": {"const": 2}, "id": {"type": "string"}, "instance_id": {"type": "string"}, "installed_version": {"type": "string"},
+    "release": {"type": "object"}, "compatible": {"type": "boolean"}, "blockers": {"type": "array", "items": {"type": "string"}},
+    "saved_reference": {"type": ["string", "null"]}, "result_published": {"type": "boolean"}, "notification_observed": {"type": ["boolean", "null"]},
+    "publication_payload": {"type": "string", "minLength": 1}, "publication_reference": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

@@ -1,6 +1,6 @@
 # Acceptance status
 
-Status date: 2026-09-09. Public references here contain no private PoC identifiers.
+Status date: 2026-09-10. Public references here contain no private PoC identifiers. The detailed v2 hardening evidence, exact test checkpoints and unresolved gates are in [hardening-status.md](hardening-status.md); this summary does not certify a released or production-ready instance.
 
 | Evidence class | Status | Evidence |
 |---|---|---|
