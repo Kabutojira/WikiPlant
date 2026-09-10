@@ -4,7 +4,7 @@ Baseline: `c5907ca3fb2d44df2f73ce0b3202909f548e7ef0`, 2026-09-10. Initial tree: 
 
 Baseline commands: `PYTHONPATH=scripts python -m unittest discover -s tests -p 'test_*.py'` — 64 tests PASS. `PYTHONPATH=scripts python -m wikiplant.cli validate --root .` — PASS. These are local checks only.
 
-Final local checkpoint, 2026-09-10: **178 tests PASS**, repository validator PASS, draft packaging PASS, synthetic installer e2e PASS. Development version: **0.2.0, unpublished**. Local M0–M7 implementation and M8 migration are present; behavioral release acceptance is PARTIAL and live acceptance is NOT RUN. No commit, push, public release, live Drive mutation, permission change or schedule operation was performed.
+Final local checkpoint, 2026-09-10: **178 tests PASS**, repository validator PASS, draft packaging PASS, synthetic installer e2e PASS. Source version: **0.2.0**. Local M0–M7 implementation and M8 migration are present; behavioral release acceptance is PARTIAL and live acceptance is NOT RUN. This evidence records no live Drive mutation, permission change or schedule operation. Git hosting state and detached release assets must be verified independently from the checkout.
 
 ## Shared v2 implementation contracts
 
@@ -78,7 +78,7 @@ git diff --check
   PASS
 ```
 
-The fake installer's `ACTIVE_VERIFIED` is a test-state outcome, not a real installed skill or unattended run. Runtime closure is checked with an isolated staged-module subprocess; updater reconstruction also has a fresh-process regression. The public source bytes must be committed and a detached released asset produced in a separately authorized maintainer workflow before repository-URL release acceptance can run. The minimal Work handoff is [verification.md](verification.md): approve one fresh sandbox, verify capabilities/install/routing, raw changed-input freshness and overlap, then weekly archival/notices and an explicitly authorized update/recovery followed by a real scheduled run. Human notification observation stays separate.
+The fake installer's `ACTIVE_VERIFIED` is a test-state outcome, not a real installed skill or unattended run. Runtime closure is checked with an isolated staged-module subprocess; updater reconstruction also has a fresh-process regression. Repository-URL release acceptance requires an immutable source commit and a matching detached released asset; GitHub publication does not by itself prove installation. The minimal Work handoff is [verification.md](verification.md): approve one fresh sandbox, verify capabilities/install/routing, raw changed-input freshness and overlap, then weekly archival/notices and an explicitly authorized update/recovery followed by a real scheduled run. Human notification observation stays separate.
 
 ## Topic governance and compact archive verification
 

@@ -12,7 +12,7 @@ Install WikiPlant from https://github.com/Kabutojira/WikiPlant
 
 Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions a private Drive instance, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. No API key, local checkout, ZIP upload, GitHub account, or copied Drive file ID belongs in the supported user flow.
 
-This working tree is the unpublished **0.2.0 development scaffold**, with version 2 data contracts and a conservative migration from version 1. No release or live upgrade is implied by the version change. A published installation source must have an immutable source commit and a matching detached release-manifest asset; `release/runtime-manifest.json` is only a draft development inventory. The installer rejects draft or mismatched releases.
+This is the **0.2.0 scaffold**, with version 2 data contracts and a conservative migration from version 1. A usable published installation source consists of an immutable GitHub release and its matching detached release-manifest asset; a version string or branch commit alone is not a release. `release/runtime-manifest.json` is only a non-installable development inventory. The installer rejects draft or mismatched releases.
 
 ## Developer verification
 
