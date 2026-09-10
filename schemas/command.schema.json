@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/command-v1.json",
+  "type": "object",
+  "required": ["id", "instance_id", "operation", "authorization", "submitted_content", "submitted_at", "outcome"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1}, "instance_id": {"type": "string", "minLength": 1}, "operation": {"enum": ["save", "add", "track", "investigate", "configure", "pause", "resume"]},
+    "authorization": {"type": "string", "pattern": "^explicit-user"}, "submitted_content": {"type": "string"}, "submitted_at": {"type": "string", "format": "date-time"}, "outcome": {"enum": ["pending", "applied", "blocked", "rejected"]}, "canonical_reference": {"type": ["string", "null"]}
+  },
+  "additionalProperties": false
+}

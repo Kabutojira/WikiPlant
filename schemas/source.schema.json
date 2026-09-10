@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/source-v1.json",
+  "type": "object",
+  "required": ["id", "canonical_ref", "title", "retrieved_at", "source_type", "permitted_extracts", "limitations", "full_text_retained"],
+  "properties": {
+    "id": {"type": "string"}, "canonical_ref": {"type": "string"}, "title": {"type": "string"}, "publisher": {"type": ["string", "null"]},
+    "published_at": {"type": ["string", "null"]}, "updated_at": {"type": ["string", "null"]}, "retrieved_at": {"type": "string", "format": "date-time"}, "event_at": {"type": ["string", "null"]},
+    "source_type": {"type": "string"}, "permitted_extracts": {"type": "array", "items": {"type": "string"}}, "limitations": {"type": "array", "items": {"type": "string"}}, "syndication_key": {"type": ["string", "null"]}, "full_text_retained": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

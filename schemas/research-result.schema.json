@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/research-result-v1.json",
+  "type": "object",
+  "required": ["id", "question", "attempt_id", "run_id", "origin", "source_ids", "findings", "confidence", "uncertainties", "affected_page_ids", "applicability", "selected_followup_ids", "status"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1}, "question": {"type": "string", "minLength": 1}, "attempt_id": {"type": "string", "minLength": 1}, "run_id": {"type": "string", "minLength": 1}, "origin": {"type": "string"},
+    "source_ids": {"type": "array", "items": {"type": "string"}}, "findings": {"type": "array", "items": {"type": "string"}}, "confidence": {"type": "string"}, "uncertainties": {"type": "array", "items": {"type": "string"}},
+    "affected_page_ids": {"type": "array", "items": {"type": "string"}}, "applicability": {"type": "array", "items": {"type": "string"}}, "selected_followup_ids": {"type": "array", "maxItems": 3, "items": {"type": "string"}},
+    "status": {"enum": ["complete", "partial", "blocked"]}
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,11 @@
+# Private routing profile
+
+Revision: {{routing_profile_revision}}
+
+Primary topics and approved aliases:
+
+{{topic_lines}}
+
+Representative entities (bounded): {{representative_entities}}
+
+Route topic-related retrieval and explicit save/research requests to this instance. A passive mention stays read-only. Explicit instance selection wins; unresolved overlap requires one disambiguation before any read/write. This private profile may be newer than installed metadata; report host synchronization separately.

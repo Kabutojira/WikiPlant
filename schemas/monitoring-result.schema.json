@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/monitoring-result-v1.json",
+  "type": "object",
+  "required": ["instance_id", "local_date", "topic_id", "coverage_start", "coverage_end", "max_queries", "max_sources", "queries_used", "sources_used", "status", "findings", "limitations"],
+  "properties": {
+    "instance_id": {"type": "string"}, "local_date": {"type": "string", "format": "date"}, "topic_id": {"type": "string"}, "coverage_start": {"type": "string", "format": "date-time"}, "coverage_end": {"type": "string", "format": "date-time"},
+    "max_queries": {"type": "integer", "minimum": 1}, "max_sources": {"type": "integer", "minimum": 1}, "queries_used": {"type": "integer", "minimum": 0}, "sources_used": {"type": "integer", "minimum": 0},
+    "status": {"enum": ["in_progress", "complete", "no_material_update", "partial", "blocked"]}, "findings": {"type": "array", "items": {"type": "string"}}, "limitations": {"type": "array", "items": {"type": "string"}}
+  },
+  "additionalProperties": true
+}

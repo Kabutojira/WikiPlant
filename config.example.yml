@@ -1,0 +1,54 @@
+schema_version: 1
+instance:
+  id: null
+  name: null
+  language: en
+  timezone: UTC
+storage:
+  provider: google-drive
+  root_folder_id: null
+runtime:
+  release_id: null
+  source_commit: null
+  manifest_sha256: null
+  upgrades: explicit-user-request
+skill:
+  per_instance: true
+  installed_reference: null
+  routing_profile_revision: 1
+primary_topics: []
+schedules:
+  daily:
+    local_time: null
+  weekly:
+    weekday: null
+    local_time: null
+initialization:
+  max_research_attempts: 5
+queue:
+  normal_daily_attempts: 5
+  urgent_daily_attempts_total: 10
+  urgent_priority: 0
+  max_attempts_per_item: 3
+expansion:
+  child_priority_increment: 20
+  max_children_per_research: 3
+  preserve_expansion_priority: true
+main_topic_refresh:
+  enabled: true
+  outside_queue_budget: true
+  max_search_queries_per_topic: 4
+  max_source_fetches_per_topic: 8
+  lookback_overlap_hours: 12
+exploration:
+  allow_adjacent_topics: true
+  max_new_automatic_roots_per_day: 10
+maintenance:
+  max_semantic_pages_per_week: 30
+reports:
+  delivery: native-task-result
+  upcoming_days: 7
+  include_quiet_day_report: true
+sources:
+  retention: metadata-and-permitted-extracts
+  retain_full_text: false

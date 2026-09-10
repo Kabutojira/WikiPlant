@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/instance-v1.json",
+  "type": "object",
+  "required": ["schema_version", "instance_id", "root_folder_id", "config_file_id", "drive_map_file_id", "runtime_release_id", "source_commit"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "instance_id": {"type": "string", "pattern": "^wp-[a-f0-9]{16}$"},
+    "root_folder_id": {"type": "string", "minLength": 1},
+    "config_file_id": {"type": "string", "minLength": 1},
+    "drive_map_file_id": {"type": "string", "minLength": 1},
+    "runtime_release_id": {"type": "string", "minLength": 1},
+    "source_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"}
+  },
+  "additionalProperties": true
+}

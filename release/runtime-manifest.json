@@ -1,0 +1,322 @@
+{
+  "files": [
+    {
+      "encoding": "utf-8",
+      "path": "cron/daily.prompt.md.template",
+      "sha256": "509b5fa8fb8da685baf258fae46a00de883892d235edd36fc6c8c43aa59468dd",
+      "size": 1060
+    },
+    {
+      "encoding": "utf-8",
+      "path": "cron/schedules.schema.json",
+      "sha256": "44584fd4e57e99c0876cd45bc63ddc5326096a0d5068120f57d8fb1e67eb66a5",
+      "size": 628
+    },
+    {
+      "encoding": "utf-8",
+      "path": "cron/weekly.prompt.md.template",
+      "sha256": "c67984fa8db61bd46bae409ff888d35f78b8c44dd487307f2bbf9599774a2ce4",
+      "size": 890
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/calendar.schema.json",
+      "sha256": "0920ba53d680acce36917aa0b74f103c3f5dcec4bb25258a86b13be6c17adf68",
+      "size": 1609
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/command.schema.json",
+      "sha256": "2ef9cd82e418d63e675b7c4f79490ee95bf7c7f9ba20b42376d3a93288126681",
+      "size": 800
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/config.schema.json",
+      "sha256": "466fe9796061c289700d5a3e40a9b525cfe68a72bce73e51062255495cdf60e5",
+      "size": 2427
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/instance.schema.json",
+      "sha256": "7b6614fdceebf2d2a9698c0ae71ddd08d321a53853868650d8f4ad09fc027c83",
+      "size": 762
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/monitoring-result.schema.json",
+      "sha256": "2e1c724c9b43f08bd2ae8c577ff3ef13cf359b945b43cef7470831c14e5c8ed6",
+      "size": 1069
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/operation.schema.json",
+      "sha256": "1949b0b133da3ee93c6830d937a0c94903c728faba0cd58d07bb782891e8a3b9",
+      "size": 901
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/report.schema.json",
+      "sha256": "94a1356032d8133cb33107a22eeedd232f8b63dd8296aaff3a1908824c2bc313",
+      "size": 834
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/research-queue.schema.json",
+      "sha256": "cb89f29381d28e65faf819e0c8e47b1f685a5903c9f0d3b56d92cd5f1eb338df",
+      "size": 1434
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/research-result.schema.json",
+      "sha256": "86c251f50ec4ffab1fb1c9141a99ccb11a5154658588d897906628edfc1a32b0",
+      "size": 1137
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/source.schema.json",
+      "sha256": "6dbe4ed062b47d4acc110e4a3950b4534493e271f42a6ca7479fa927024e5401",
+      "size": 936
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/templates/wiki-page.md",
+      "sha256": "998bfa1fc73c661202483e6f3b0500401ad592fa1044747a94e8470f5655dd18",
+      "size": 489
+    },
+    {
+      "encoding": "utf-8",
+      "path": "schemas/wiki-page.schema.json",
+      "sha256": "245e449a991c4e88121918434f772e9b8c7cfe204827651ef71bf81687e560b2",
+      "size": 1053
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/__init__.py",
+      "sha256": "3b7e29ddcde52f8ab4e24b89203af85c82f76a5f409d4fbb8551eb07bd0338ed",
+      "size": 183
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/calendar.py",
+      "sha256": "b3bd1b91712aec1da67fddc9c2682af9ff131e773e259515f4ea7ab66d860b7a",
+      "size": 9759
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/config.py",
+      "sha256": "3e84c3077ac5af5318cb0b9ba710cb35be1424439eceea4d2d715c6b9171e7ef",
+      "size": 3654
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/errors.py",
+      "sha256": "fbee869a2830b776c3a1d4b9eb396b9e920f2fe8f5635192832b7d54cc7564c7",
+      "size": 526
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/initialization.py",
+      "sha256": "a8e324fa4dd7bcecd20969913294c567ff26e0be9875adb21d0bf955a1f658c6",
+      "size": 3213
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/intake.py",
+      "sha256": "b5445db12b4ee8158b9587f07a15de14a2e10ea0c76a52a1fdcc31c698ad87ca",
+      "size": 5284
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/maintenance.py",
+      "sha256": "da9a0808beda6de1c72dbfef57da6df67b153be673e575f25f4b452017fc25fc",
+      "size": 3686
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/monitoring.py",
+      "sha256": "4165eecc2ee8c014768be68d94fa6a8629a2023c42a2f9c2a6754c5cf6b77f3c",
+      "size": 2967
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/orchestrator.py",
+      "sha256": "81e1e7445346b0ee1c8890b9270bbaf667f277d936ddbcb45806fad774068aa6",
+      "size": 2121
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/queue.py",
+      "sha256": "30923276295440778097a32c04fb00969ef372076f202ac818de8d50e7407285",
+      "size": 11102
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/records.py",
+      "sha256": "e2866ec5bc6abfad147780e069e04f4b1e96a378b829f6740f79e6a9da9f8308",
+      "size": 3597
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/reporting.py",
+      "sha256": "513f8ecf842e7f4ad8f1b40a0ec4f148ac4cab03286ba62cda95f2f118ca589f",
+      "size": 4036
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/setup.py",
+      "sha256": "2176772749cf9bd72cbd393084426981cfb51d741e2bf5e48d0b943cb7a472b6",
+      "size": 4439
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/skillgen.py",
+      "sha256": "f1c6af73490748731c3ab31523bffbc8c85f0e43c7f974693feb3e6bad62309a",
+      "size": 4497
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/storage.py",
+      "sha256": "46fc79747fdd59bd729cdd9d2611f8df613a8ec612b0956be3ee1c178e6ef001",
+      "size": 5774
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/upgrades.py",
+      "sha256": "3cb70d3b5ab1e12c6e85f201f8d0f9e352e5c37706541dafbce56995c0984903",
+      "size": 2922
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/util.py",
+      "sha256": "0f7df2bfd8a028d6296966ef367201c6accddae0511caab5ad5c6a2dbc1384af",
+      "size": 2116
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/wiki.py",
+      "sha256": "678d10dd6a563eaa56ed8c0a8240bcc332439130098edf8f0ad3a9b7e2aecb40",
+      "size": 6295
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/yamlio.py",
+      "sha256": "3d30e1618b89a0f121f1b95236665116780dcf1be61d3afc97a0b30a45638eed",
+      "size": 8094
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/calendar/WORKFLOW.md",
+      "sha256": "aac4c7f597ad06acdac79d0a7146eade293042132c6b992049fd759946e47975",
+      "size": 895
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/create-report/WORKFLOW.md",
+      "sha256": "aac15a6906befa38e18d514d497c047267f20a9cafc0c85048b09f8aff6e53d0",
+      "size": 920
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/daily-operation/WORKFLOW.md",
+      "sha256": "85e16c81c68676fb5ae08674d1104b79c7a96bf2ea46924631d2b06ccfe565fc",
+      "size": 1119
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/discover/WORKFLOW.md",
+      "sha256": "6947d63a40ae6c64e11782de4c68da59b57e2e4bdb3d18e0ec85b4291f99c7fd",
+      "size": 773
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/init/WORKFLOW.md",
+      "sha256": "c00217935482d4cc87569ec7477880fc798fb5b873896e38838ab9b1a1f87ac8",
+      "size": 964
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/instance/ROUTING.md.template",
+      "sha256": "9447ff89f58dc2233e462b4f36e322ff432c1bfec59e8af6317e5ddca5e80cb7",
+      "size": 508
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/instance/SKILL.md.template",
+      "sha256": "4099b223a12461349dd548a2aaaf499b626ad2b432eb6655b6a4ff7e7860edaf",
+      "size": 1073
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/main-topic-refresh/WORKFLOW.md",
+      "sha256": "69e2bc7d0ceaf1aa9f46d651c1008141ab6ad423ca177afc6e6e6587daf78ef7",
+      "size": 1344
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/query/WORKFLOW.md",
+      "sha256": "ab4a481dbf8bf513b494012184dda3fe899fa01ee56dda0dcb45c77d7a30c641",
+      "size": 1157
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/research/WORKFLOW.md",
+      "sha256": "001e89a5edab20ada1ed7e6459f7d9581b6b961ccba97cc72a0d6e9b818ad323",
+      "size": 1279
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/synthesize/WORKFLOW.md",
+      "sha256": "c9ae2a497e4f676131ec21295062d78577391f7af126d79088b99c666ee2b1ff",
+      "size": 769
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/upgrade/WORKFLOW.md",
+      "sha256": "67e68311654830c9fea3153174286e731379de2235202d7204867dcf0f52ef74",
+      "size": 1062
+    },
+    {
+      "encoding": "utf-8",
+      "path": "skills/wiki-maintenance/WORKFLOW.md",
+      "sha256": "dcd551ce070fdf2f7420a96a105fc949d24ac10e4ab0b1e0ccea179844263b06",
+      "size": 979
+    },
+    {
+      "encoding": "utf-8",
+      "path": "templates/data/SCOPE.md",
+      "sha256": "ad3fcea6dbb2e9866cb7f86f46627eed67ec32e2b29a52b2935ca6961f6a0ddd",
+      "size": 74
+    },
+    {
+      "encoding": "utf-8",
+      "path": "templates/data/calendar.csv",
+      "sha256": "9297c305e34a47820951831fec1b63b41536dd06aff44d8e67a27016331d94fa",
+      "size": 189
+    },
+    {
+      "encoding": "utf-8",
+      "path": "templates/data/research_queue.csv",
+      "sha256": "ac8aca17279b0ebe407cc33677759e3b0a6f147d81f44f4faa11a2b798502a3f",
+      "size": 224
+    },
+    {
+      "encoding": "utf-8",
+      "path": "templates/data/wiki/index.md",
+      "sha256": "20b362a39d9d4426ba15393c22a77caa2766f84dfc643e0d05849ebef088d8c3",
+      "size": 46
+    },
+    {
+      "encoding": "utf-8",
+      "path": "templates/data/wiki/log.md",
+      "sha256": "ade324386f71a79d2c6cd209e6322c035a96efda543ed774ec4b01816f295bb2",
+      "size": 18
+    }
+  ],
+  "max_file_bytes": 512000,
+  "max_total_bytes": 8000000,
+  "release_id": "0.1.0",
+  "schema_version": 1,
+  "source_commit": "uncommitted-worktree",
+  "status": "draft"
+}

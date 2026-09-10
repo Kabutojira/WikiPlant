@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/research-queue-row-v1.json",
+  "type": "object",
+  "required": ["priority", "id", "expansion_priority", "kind", "question", "topic_id", "related_page_ids", "parent_ids", "lineage_root_id", "origin", "created_at", "status", "attempts", "priority_reason", "urgency_reason", "dedup_key"],
+  "properties": {
+    "priority": {"type": "integer", "minimum": 0, "maximum": 100},
+    "id": {"type": "string", "minLength": 1},
+    "expansion_priority": {"type": "integer", "minimum": 0, "maximum": 100},
+    "kind": {"enum": ["investigation", "refresh", "contradiction", "validation"]},
+    "question": {"type": "string", "minLength": 1, "pattern": "^[^\\r\\n]*$"},
+    "topic_id": {"type": "string", "minLength": 1},
+    "related_page_ids": {"type": "array", "items": {"type": "string"}},
+    "parent_ids": {"type": "array", "items": {"type": "string"}},
+    "lineage_root_id": {"type": "string", "minLength": 1},
+    "origin": {"enum": ["user", "initialization", "main-topic", "discovery", "research", "calendar", "maintenance"]},
+    "status": {"enum": ["pending", "in_progress", "retry_wait", "blocked"]},
+    "attempts": {"type": "integer", "minimum": 0},
+    "priority_reason": {"type": "string"},
+    "urgency_reason": {"type": "string"},
+    "dedup_key": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

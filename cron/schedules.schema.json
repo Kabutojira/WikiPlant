@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/schedules-v1.json",
+  "type": "object",
+  "required": ["daily", "weekly"],
+  "properties": {
+    "daily": {"type": "object", "required": ["local_time"], "properties": {"local_time": {"type": "string", "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"}}},
+    "weekly": {"type": "object", "required": ["weekday", "local_time"], "properties": {"weekday": {"enum": ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]}, "local_time": {"type": "string", "pattern": "^(?:[01]\\d|2[0-3]):[0-5]\\d$"}}}
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/report-v1.json",
+  "type": "object",
+  "required": ["id", "report_key", "local_date", "included_record_ids", "config_revision", "runtime_release_id", "saved", "result_published", "notification_observed", "read"],
+  "properties": {
+    "id": {"type": "string"}, "report_key": {"type": "string"}, "local_date": {"type": "string", "format": "date"}, "included_record_ids": {"type": "array", "uniqueItems": true, "items": {"type": "string"}},
+    "config_revision": {"type": "string"}, "runtime_release_id": {"type": "string"}, "saved": {"type": "boolean"}, "result_published": {"type": "boolean"}, "notification_observed": {"type": ["boolean", "null"]}, "read": {"type": ["boolean", "null"]}
+  },
+  "additionalProperties": true
+}

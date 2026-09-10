@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/calendar-row-v1.json",
+  "type": "object",
+  "required": ["id", "kind", "title", "start_date", "timezone", "date_precision", "status", "related_page_ids", "source_refs", "priority", "expansion_priority", "recurrence", "lead_days", "updated_at"],
+  "properties": {
+    "id": {"type": "string", "minLength": 1}, "kind": {"enum": ["event", "research_refresh"]}, "title": {"type": "string", "minLength": 1},
+    "start_date": {"type": "string", "format": "date"}, "start_at": {"type": "string"}, "end_at": {"type": "string"}, "timezone": {"type": "string", "minLength": 1},
+    "date_precision": {"enum": ["date", "time", "month", "year", "unknown"]}, "status": {"enum": ["scheduled", "tentative", "completed", "cancelled", "unsupported"]},
+    "related_page_ids": {"type": "array", "items": {"type": "string"}}, "source_refs": {"type": "array", "items": {"type": "string"}}, "refresh_question": {"type": "string"},
+    "priority": {"type": "integer", "minimum": 0, "maximum": 100}, "expansion_priority": {"type": "integer", "minimum": 0, "maximum": 100},
+    "recurrence": {"type": "object", "required": ["frequency"], "properties": {"frequency": {"enum": ["none", "daily", "weekly", "monthly"]}, "interval": {"type": "integer", "minimum": 1}, "until": {"type": "string", "format": "date"}}, "additionalProperties": false},
+    "lead_days": {"type": "integer", "minimum": 0}, "origin_ref": {"type": "string"}, "updated_at": {"type": "string", "format": "date-time"}
+  },
+  "additionalProperties": false
+}

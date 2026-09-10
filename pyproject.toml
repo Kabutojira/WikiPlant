@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wikiplant"
+version = "0.1.0"
+description = "Deterministic helpers for a Drive-backed ChatGPT Work research wiki"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.scripts]
+wikiplant = "wikiplant.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "scripts"}
+
+[tool.setuptools.packages.find]
+where = ["scripts"]
