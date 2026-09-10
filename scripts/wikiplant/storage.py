@@ -1,8 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime, timedelta, timezone
 import json
-from typing import Protocol
+from typing import Callable, Protocol
 
 from .errors import CapabilityError, ConflictError, SimulatedLostResponse, ValidationError
 from .util import pretty_json, safe_relative_path, sha256_bytes, sha256_text
@@ -18,6 +19,9 @@ RAW_MIME = {
     ".py": "text/x-python",
 }
 NATIVE_LOOKALIKES = {"application/vnd.google-apps.document", "application/vnd.google-apps.spreadsheet"}
+STRICT_CONSISTENCY = "strict"
+BEST_EFFORT_PERSONAL = "best-effort-personal"
+BEST_EFFORT_LOCK_HOURS = 20
 
 
 @dataclass(frozen=True)
@@ -187,15 +191,192 @@ def expected_mime(path: str) -> str:
     return "text/plain"
 
 
+def initial_lock_record(instance_id: str) -> dict:
+    """Return the permanent, unlocked personal-instance lock payload."""
+    if not instance_id:
+        raise ValidationError("lock instance ID is required")
+    return {
+        "schema_version": 1,
+        "kind": "wikiplant-personal-run-lock",
+        "instance_id": instance_id,
+        "mode": BEST_EFFORT_PERSONAL,
+        "status": "unlocked",
+        "owner_token": None,
+        "acquired_at": None,
+        "expires_at": None,
+        "released_at": None,
+        "stale_after_hours": BEST_EFFORT_LOCK_HOURS,
+        "warning": "Best-effort only: Google Drive lock replacement is not atomic.",
+    }
+
+
+@dataclass(frozen=True)
+class LockReceipt:
+    lock_file_id: str
+    owner_token: str
+    acquired_at: str
+    expires_at: str
+    recovered_stale_lock: bool
+    observed_revision: int
+
+
+class PermanentDriveLock:
+    """A deliberately non-atomic, permanent lock record for personal instances.
+
+    This reduces accidental overlap on connectors that expose only read/replace.
+    It must never be represented as provider serialization or an atomic lock.
+    """
+
+    def __init__(self, adapter: DriveAdapter, binding: Binding, approved_root_id: str, *, instance_id: str):
+        self.adapter = adapter
+        self.binding = binding
+        self.root_id = approved_root_id
+        self.instance_id = instance_id
+        if binding.mime_type != "application/json":
+            raise ValidationError("permanent lock must be a raw JSON file")
+
+    def _read(self) -> tuple[FileSnapshot, dict]:
+        snapshot = validate_binding(self.adapter, self.binding, self.root_id)
+        try:
+            record = json.loads(snapshot.content)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            raise ConflictError("permanent lock record is unreadable; do not start research") from exc
+        expected = initial_lock_record(self.instance_id)
+        if (not isinstance(record, dict)
+                or record.get("schema_version") != expected["schema_version"]
+                or record.get("kind") != expected["kind"]
+                or record.get("instance_id") != self.instance_id
+                or record.get("mode") != BEST_EFFORT_PERSONAL
+                or record.get("stale_after_hours") != BEST_EFFORT_LOCK_HOURS
+                or record.get("status") not in {"locked", "unlocked"}):
+            raise ConflictError("permanent lock record is invalid or belongs to another instance")
+        return snapshot, record
+
+    @staticmethod
+    def _now(value: datetime) -> datetime:
+        if value.tzinfo is None or value.utcoffset() is None:
+            raise ValidationError("lock time must include a UTC offset")
+        return value.astimezone(timezone.utc)
+
+    def _expiry(self, record: dict) -> datetime:
+        acquired = record.get("acquired_at")
+        expires = record.get("expires_at")
+        if not acquired or not expires:
+            raise ConflictError("locked record lacks acquisition/expiry timestamps")
+        try:
+            acquired_at = datetime.fromisoformat(acquired.replace("Z", "+00:00"))
+            expires_at = datetime.fromisoformat(expires.replace("Z", "+00:00"))
+        except (AttributeError, ValueError) as exc:
+            raise ConflictError("locked record has an invalid timestamp") from exc
+        if (acquired_at.tzinfo is None or expires_at.tzinfo is None
+                or expires_at != acquired_at + timedelta(hours=BEST_EFFORT_LOCK_HOURS)):
+            raise ConflictError("locked record expiry is not exactly 20 hours after acquisition")
+        return expires_at.astimezone(timezone.utc)
+
+    def acquire(self, owner_token: str, now: datetime) -> LockReceipt:
+        if not owner_token or len(owner_token) > 256:
+            raise ValidationError("a bounded nonempty lock owner token is required")
+        observed_now = self._now(now)
+        before, current = self._read()
+        recovered = False
+        if current["status"] == "locked":
+            expires_at = self._expiry(current)
+            if current.get("owner_token") == owner_token and observed_now < expires_at:
+                return LockReceipt(before.id, owner_token, current["acquired_at"], current["expires_at"], False, before.revision)
+            if observed_now < expires_at:
+                raise CapabilityError(f"best-effort personal-instance lock is held until {current['expires_at']}; do not start research")
+            recovered = True
+        acquired_at = observed_now.isoformat()
+        expires_at = (observed_now + timedelta(hours=BEST_EFFORT_LOCK_HOURS)).isoformat()
+        payload = initial_lock_record(self.instance_id)
+        payload.update({
+            "status": "locked",
+            "owner_token": owner_token,
+            "acquired_at": acquired_at,
+            "expires_at": expires_at,
+            "released_at": None,
+            "recovered_stale_lock": recovered,
+        })
+        content = pretty_json(payload).encode()
+        try:
+            self.adapter.replace_content(before.id, content, expected_revision=None,
+                                         operation_id=f"{self.instance_id}:personal-lock:acquire:{owner_token}")
+        except SimulatedLostResponse:
+            pass
+        after, verified = self._read()
+        if after.id != before.id or after.content != content or verified.get("owner_token") != owner_token:
+            raise ConflictError("best-effort lock acquisition lost a race; do not start research")
+        return LockReceipt(after.id, owner_token, acquired_at, expires_at, recovered, after.revision)
+
+    def assert_held(self, owner_token: str, now: datetime) -> str:
+        observed_now = self._now(now)
+        snapshot, record = self._read()
+        if record["status"] != "locked" or record.get("owner_token") != owner_token:
+            raise CapabilityError("best-effort personal-instance lock ownership was not observed")
+        if observed_now >= self._expiry(record):
+            raise CapabilityError("best-effort personal-instance lock is older than 20 hours; stop research")
+        return f"best-effort-personal-lock:{snapshot.id}:{snapshot.revision}:{owner_token}"
+
+    def release(self, owner_token: str, now: datetime) -> FileSnapshot:
+        observed_now = self._now(now)
+        before, current = self._read()
+        if current["status"] == "unlocked":
+            return before
+        if current.get("owner_token") != owner_token:
+            raise ConflictError("refusing to release a lock owned by another run")
+        payload = initial_lock_record(self.instance_id)
+        payload.update({
+            "released_at": observed_now.isoformat(),
+            "last_owner_token": owner_token,
+            "last_acquired_at": current.get("acquired_at"),
+        })
+        content = pretty_json(payload).encode()
+        try:
+            self.adapter.replace_content(before.id, content, expected_revision=None,
+                                         operation_id=f"{self.instance_id}:personal-lock:release:{owner_token}")
+        except SimulatedLostResponse:
+            pass
+        after, verified = self._read()
+        if after.content != content or verified["status"] != "unlocked":
+            raise ConflictError("best-effort lock release did not verify; later runs must inspect its timestamp")
+        return after
+
+
 class SafeWriter:
     """Journaled exact-ID writes and unique durable intake for one instance."""
 
-    def __init__(self, adapter: DriveAdapter, approved_root_id: str, operations_folder_id: str, inbox_folder_id: str, *, instance_id: str | None = None):
+    def __init__(self, adapter: DriveAdapter, approved_root_id: str, operations_folder_id: str, inbox_folder_id: str, *,
+                 instance_id: str | None = None, consistency_mode: str = STRICT_CONSISTENCY,
+                 personal_lock: PermanentDriveLock | None = None, lock_owner_token: str | None = None,
+                 clock: Callable[[], datetime] | None = None):
         self.adapter = adapter
         self.root_id = approved_root_id
         self.operations_folder_id = operations_folder_id
         self.inbox_folder_id = inbox_folder_id
         self.instance_id = instance_id or approved_root_id
+        self.consistency_mode = consistency_mode
+        self.personal_lock = personal_lock
+        self.lock_owner_token = lock_owner_token
+        self.clock = clock or (lambda: datetime.now(timezone.utc))
+        if consistency_mode not in {STRICT_CONSISTENCY, BEST_EFFORT_PERSONAL}:
+            raise ValidationError("unknown storage consistency mode")
+        if consistency_mode == BEST_EFFORT_PERSONAL and (personal_lock is None or not lock_owner_token):
+            raise ValidationError("best-effort personal writer requires a permanent lock and owner token")
+
+    def execution_guard(self) -> str:
+        if self.consistency_mode == BEST_EFFORT_PERSONAL:
+            assert self.personal_lock is not None and self.lock_owner_token is not None
+            return self.personal_lock.assert_held(self.lock_owner_token, self.clock())
+        return ""
+
+    def _require_canonical_guard(self) -> None:
+        strong = bool(getattr(self.adapter, "conditional_write", False) and getattr(self.adapter, "idempotent_create", False))
+        if self.consistency_mode == BEST_EFFORT_PERSONAL:
+            self.execution_guard()
+            return
+        if strong:
+            return
+        raise CapabilityError("canonical writes require observed conditional writes and unique intent creation; preserve intake")
 
     def submit_command(self, command: dict, command_id: str) -> FileSnapshot:
         if command.get("instance_id") != self.instance_id:
@@ -210,8 +391,7 @@ class SafeWriter:
                 authorization: dict | None = None) -> WriteReceipt:
         if not operation_id:
             raise ValidationError("operation ID is required")
-        if not getattr(self.adapter, "conditional_write", False) or not getattr(self.adapter, "idempotent_create", False):
-            raise CapabilityError("canonical writes require observed conditional writes and unique intent creation; preserve intake")
+        self._require_canonical_guard()
         before = validate_binding(self.adapter, binding, self.root_id)
         validate_scope(self.adapter, self.operations_folder_id, self.root_id, folder=True)
         if (base.id != binding.file_id or base.mime_type != binding.mime_type or not base.complete or not base.within_scope):

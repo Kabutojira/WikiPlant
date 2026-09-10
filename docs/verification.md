@@ -21,7 +21,7 @@ Use only a newly approved isolated Drive sandbox; never the owner's PoC or produ
 5. Let a scheduled occurrence start automatically. Inspect monitoring counters, queue reservations, evidence/wiki writes, report readback, result status, and approvals.
 6. Change the raw input and manual note again between two occurrences. Verify the next run observes and preserves both.
 7. Replay the completed logical run. Confirm no extra primary-topic allowance, queue reservation, children, or report.
-8. Force daily/daily and daily/weekly overlap. Accept only proved serialization or fail-closed durable preservation.
+8. Force daily/daily and daily/weekly overlap. Strict mode passes only with proved serialization or fail-closed durable preservation. Best-effort personal mode must visibly refuse an observed live lock, reclaim at exactly 20 hours, refuse cross-owner release, and disclose that simultaneous acquisition can still race; it is not strict overlap acceptance.
 9. Record notification delivery only if the host or user actually observes it. Clean up only temporary acceptance tasks.
 10. Observe weekly expiry/archival: inspect retained source/user notes, capsule redirects and removed automatic obligations. Verify bounded archive retrieval without reactivation.
 11. Observe a weekly release check and saved update notice. Confirm no runtime adoption; explicitly request the pinned candidate in this sandbox, then inspect checkpoints, migrated raw IDs/counts, preserved budgets, the same installed skill/two tasks and fresh invocation.

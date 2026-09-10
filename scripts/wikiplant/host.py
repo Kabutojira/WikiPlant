@@ -13,6 +13,7 @@ class CapabilityProfile:
     scheduled_task_create: bool = False
     scheduled_task_inspect: bool = False
     conditional_write: bool = False
+    idempotent_create: bool = False
     serialized_task_runs: bool = False
     observed_surface: str = "unobserved"
     observed_at: str | None = None
@@ -25,6 +26,9 @@ class CapabilityProfile:
             self.google_drive_content_update,
             self.google_drive_paginated_list,
         ))
+
+    def strict_consistency_ready(self) -> bool:
+        return self.conditional_write and self.idempotent_create and self.serialized_task_runs
 
 
 @dataclass(frozen=True)

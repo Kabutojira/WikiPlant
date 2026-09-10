@@ -71,7 +71,7 @@ def runtime_paths(root: Path) -> list[Path]:
 def build_manifest(root: Path, release_id: str, source_commit: str, *, status: str = "released",
                    repository: str = "Kabutojira/WikiPlant", read_schemas: tuple[int, ...] = (2,),
                    write_schema: int = 2, migrations: tuple[str, ...] = ("1_to_2",),
-                   required_capabilities: tuple[str, ...] = ("raw_create", "raw_full_read", "raw_content_update", "paginated_inventory", "conditional_write", "idempotent_create", "serialized_execution", "private_skill_update", "task_inspect", "writer_drain")) -> dict[str, Any]:
+                   required_capabilities: tuple[str, ...] = ("raw_create", "raw_full_read", "raw_content_update", "paginated_inventory", "private_skill_update", "task_inspect")) -> dict[str, Any]:
     from .releases import Version
     Version.parse(release_id)
     if status == "released" and not COMMIT_RE.fullmatch(source_commit):

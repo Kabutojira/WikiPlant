@@ -15,7 +15,9 @@ Create the empty private parent folder in Drive first and paste its normal shari
 
 Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions a private Drive instance, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. If the surface cannot read a GitHub release attachment, it uses the release's immutable raw manifest mirror and verifies the bytes against GitHub's asset digest. No API key, local checkout, ZIP upload, GitHub account, copied Drive file ID, or user-created manifest belongs in the supported flow.
 
-This is the **0.2.0 scaffold**, with version 2 data contracts and a conservative migration from version 1. A usable published installation source consists of an immutable GitHub release and its matching detached release-manifest asset; a version string or branch commit alone is not a release. `release/runtime-manifest.json` is only a non-installable development inventory. The installer rejects draft or mismatched releases.
+Installations prefer strict conditional/idempotent Drive writes and serialized task runs. If the connected Drive surface exposes only raw create/read/replace/list operations, WikiPlant can instead use an explicitly approved `best-effort-personal` mode with one permanent lock file. The lock expires after 20 hours and reduces ordinary overlap, but it is not atomic and does not provide exactly-once execution.
+
+This is the **0.2.1 development scaffold**, with version 2 data contracts and a conservative migration from version 1. A usable published installation source consists of an immutable GitHub release and its matching detached release-manifest asset; a version string or branch commit alone is not a release. `release/runtime-manifest.json` is only a non-installable development inventory. The installer rejects draft or mismatched releases.
 
 ## Developer verification
 

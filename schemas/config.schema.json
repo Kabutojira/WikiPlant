@@ -10,7 +10,25 @@
       "required": ["id", "name", "language", "timezone"],
       "properties": {"id": {"type": "string", "minLength": 1}, "name": {"type": "string", "minLength": 1}, "language": {"type": "string", "minLength": 2}, "timezone": {"type": "string", "minLength": 1}}
     },
-    "storage": {"type": "object", "required": ["provider", "root_folder_id"], "properties": {"provider": {"const": "google-drive"}, "root_folder_id": {"type": "string", "minLength": 1}}},
+    "storage": {
+      "type": "object",
+      "required": ["provider", "root_folder_id", "consistency_mode"],
+      "properties": {
+        "provider": {"const": "google-drive"},
+        "root_folder_id": {"type": "string", "minLength": 1},
+        "consistency_mode": {"enum": ["strict", "best-effort-personal"]},
+        "personal_lock": {
+          "type": "object",
+          "required": ["file_id", "logical_path", "stale_after_hours"],
+          "properties": {
+            "file_id": {"type": "string", "minLength": 1},
+            "logical_path": {"const": "data/state/research.lock.json"},
+            "stale_after_hours": {"const": 20}
+          },
+          "additionalProperties": false
+        }
+      }
+    },
     "runtime": {"type": "object", "required": ["release_id", "source_commit", "manifest_sha256", "upgrades"], "properties": {"upgrades": {"const": "explicit-user-request"}}},
     "skill": {"type": "object", "required": ["per_instance", "routing_profile_revision"], "properties": {"per_instance": {"const": true}, "routing_profile_revision": {"type": "integer", "minimum": 1}}},
     "primary_topics": false,

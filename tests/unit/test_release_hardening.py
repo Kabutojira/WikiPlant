@@ -115,7 +115,22 @@ class ReleaseHardeningTests(unittest.TestCase):
         self.assertEqual(manifest["source_commit"], "d3afb1aafaef16dd807117bd44548b9f3f57fba6")
         self.assertEqual(manifest["status"], "released")
         self.assertNotIn(path.relative_to(ROOT).as_posix(), {entry["path"] for entry in manifest["files"]})
-        verify_manifest(ROOT, manifest, resolved_commit=manifest["source_commit"])
+        # A historical release must be verified against its pinned source tree,
+        # not against later development bytes in the current worktree.
+        with tempfile.TemporaryDirectory() as folder:
+            checkout = Path(folder)
+            for entry in manifest["files"]:
+                source = subprocess.run(
+                    ["git", "show", f"{manifest['source_commit']}:{entry['path']}"],
+                    cwd=ROOT,
+                    capture_output=True,
+                    check=False,
+                )
+                self.assertEqual(source.returncode, 0, entry["path"])
+                target = checkout / entry["path"]
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_bytes(source.stdout)
+            verify_manifest(checkout, manifest, resolved_commit=manifest["source_commit"])
 
     def test_install_handoff_never_asks_user_to_manufacture_manifest(self):
         install = (ROOT / "INSTALL.md").read_text()

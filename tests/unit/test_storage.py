@@ -1,13 +1,23 @@
 from __future__ import annotations
 
+import json
 import unittest
+from datetime import datetime, timedelta, timezone
 
-from wikiplant.errors import ConflictError, SimulatedLostResponse, ValidationError
-from wikiplant.fake_drive import FakeDrive
+from wikiplant.errors import CapabilityError, ConflictError, SimulatedLostResponse, ValidationError
+from wikiplant.fake_drive import FakeDrive, WeakDrive
 from wikiplant.records import Command
 from wikiplant.intake import durable_intake
 from wikiplant.authorization import UserAuthorization, request_digest
-from wikiplant.storage import Binding, SafeWriter, validate_binding
+from wikiplant.storage import (
+    BEST_EFFORT_PERSONAL,
+    Binding,
+    PermanentDriveLock,
+    SafeWriter,
+    initial_lock_record,
+    validate_binding,
+)
+from wikiplant.util import pretty_json
 
 
 class StorageTests(unittest.TestCase):
@@ -80,6 +90,63 @@ class StorageTests(unittest.TestCase):
         matches = [entry for entry in self.drive.list_all(self.root.id) if entry.name == "report.md"]
         self.assertEqual(len(matches), 1)
         self.assertEqual(observed.content, b"report")
+
+
+class BestEffortPersonalLockTests(unittest.TestCase):
+    def setUp(self):
+        self.drive = WeakDrive()
+        self.root = self.drive.create_folder(None, "instance", idempotency_key="root")
+        self.ops = self.drive.create_folder(self.root.id, "operations", idempotency_key="ops")
+        self.inbox = self.drive.create_folder(self.root.id, "inbox", idempotency_key="inbox")
+        payload = pretty_json(initial_lock_record("wp-test")).encode()
+        self.raw_lock = self.drive.create_file(self.root.id, "research.lock.json", "application/json", payload, idempotency_key="lock")
+        self.binding = Binding("data/state/research.lock.json", self.raw_lock.id, "application/json", self.root.id)
+        self.lock = PermanentDriveLock(self.drive, self.binding, self.root.id, instance_id="wp-test")
+        self.started = datetime(2026, 1, 15, 0, 0, tzinfo=timezone.utc)
+
+    def test_live_lock_blocks_and_becomes_reclaimable_at_twenty_hours(self):
+        first = self.lock.acquire("run-a", self.started)
+        self.assertEqual(first.expires_at, (self.started + timedelta(hours=20)).isoformat())
+        with self.assertRaises(CapabilityError):
+            self.lock.acquire("run-b", self.started + timedelta(hours=19, minutes=59))
+        with self.assertRaises(CapabilityError):
+            self.lock.assert_held("run-a", self.started + timedelta(hours=20))
+        second = self.lock.acquire("run-b", self.started + timedelta(hours=20))
+        self.assertTrue(second.recovered_stale_lock)
+        with self.assertRaises(ConflictError):
+            self.lock.release("run-a", self.started + timedelta(hours=20, minutes=1))
+        released = self.lock.release("run-b", self.started + timedelta(hours=20, minutes=1))
+        self.assertEqual(released.id, self.raw_lock.id)
+        self.assertEqual(json.loads(released.content)["status"], "unlocked")
+
+    def test_weak_writer_requires_current_lock_ownership(self):
+        self.drive.lose_next_write_response = True
+        self.lock.acquire("run-a", self.started)
+        page = self.drive.create_file(self.root.id, "page.md", "text/markdown", b"base", idempotency_key="page")
+        page_binding = Binding("data/wiki/page.md", page.id, "text/markdown", self.root.id)
+        writer = SafeWriter(
+            self.drive,
+            self.root.id,
+            self.ops.id,
+            self.inbox.id,
+            instance_id="wp-test",
+            consistency_mode=BEST_EFFORT_PERSONAL,
+            personal_lock=self.lock,
+            lock_owner_token="run-a",
+            clock=lambda: self.started + timedelta(minutes=1),
+        )
+        receipt = writer.replace(page_binding, b"updated", "write-1", base=page)
+        self.assertEqual(receipt.content, b"updated")
+        self.lock.release("run-a", self.started + timedelta(minutes=2))
+        with self.assertRaises(CapabilityError):
+            writer.replace(page_binding, b"second", "write-2", base=receipt.current)
+
+    def test_malformed_locked_timestamp_fails_closed(self):
+        record = initial_lock_record("wp-test")
+        record.update(status="locked", owner_token="run-a", acquired_at="bad", expires_at="bad")
+        self.drive.external_edit(self.raw_lock.id, pretty_json(record).encode())
+        with self.assertRaises(ConflictError):
+            self.lock.acquire("run-b", self.started + timedelta(days=2))
 
 
 if __name__ == "__main__":

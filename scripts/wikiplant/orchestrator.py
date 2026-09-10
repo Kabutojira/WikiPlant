@@ -35,10 +35,12 @@ class DailyOutcome:
 
 
 class DailyRunStore:
-    """Work bridge for a cycle, requiring observed exclusion of whole executions.
+    """Work bridge for a cycle, requiring an observed execution guard.
 
-    execution_guard must observe a host guarantee, never a mutable Drive lock.
-    Callbacks execute provider operations; these helpers have no credentials.
+    Strict mode uses a host serialization receipt. Explicit best-effort personal
+    mode may use ``PermanentDriveLock.assert_held`` and retains its documented
+    non-atomic residual risk. Callbacks execute provider operations; these
+    helpers have no credentials.
     """
 
     def __init__(self, writer: SafeWriter, state_binding, queue_binding, evidence_folder_id,
@@ -51,7 +53,7 @@ class DailyRunStore:
 
     def load(self, budget, config_revision, scope_revision):
         if not self.execution_guard():
-            raise CapabilityError("No observed serialization; preserve intake and block canonical work")
+            raise CapabilityError("No observed execution guard; preserve intake and block canonical work")
         if self.writer.instance_id != budget.instance_id:
             raise ValidationError("run store belongs to another instance")
         self.snapshot = validate_binding(self.writer.adapter, self.state_binding, self.writer.root_id)
@@ -75,7 +77,7 @@ class DailyRunStore:
 
     def checkpoint(self, budget):
         if not self.execution_guard():
-            raise CapabilityError("Execution serialization evidence expired")
+            raise CapabilityError("Execution guard evidence expired")
         self.state["reservations"] = [asdict(r) for r in budget.reservations]
         payload = pretty_json(self.state).encode()
         op = f"{budget.cycle_key}:state:{self.snapshot.revision}:{sha256_text(payload.decode())}"

@@ -8,6 +8,7 @@
 - Same-name Drive file: use the mapped exact raw ID and MIME type. Never substitute a Google Doc/Sheet conversion.
 - Partial/truncated read, moved file, or denied permission: make no replacement. Restore appropriate access/scope or mapping, then resume the recorded operation.
 - Conflict during canonical write: retain the unique inbox/proposal and current manual content. Let the canonical writer reconcile from fresh reads; do not overwrite from a cached CSV/page.
+- `best-effort-personal` lock present: read the exact mapped `data/state/research.lock.json`. If its valid `acquired_at` is less than 20 hours old, do not start research or clear it. At/after 20 hours a new run may replace it with its own owner/timestamp and must record stale recovery. Malformed timestamps or a changed owner are conflicts. Never delete the permanent lock file.
 - Main-topic search outage: record `PARTIAL`/`BLOCKED` with unused/used counters. Do not call it “no update” and do not spend queue slots to disguise the missing pass.
 - Report saved but result failed: retry native result publication using the saved report; do not repeat research.
 - No push/email observed: check Settings → Notifications. Keep `notification_observed` unknown unless the host/user actually observes it.

@@ -35,6 +35,8 @@ class SetupInput:
     daily_time: str | None = None
     weekly_day: str | None = None
     weekly_time: str | None = None
+    storage_consistency_mode: str = "strict"
+    best_effort_risk_acknowledged: bool = False
     confirmed_at: str | None = None
     topic_authorizations: dict[str, dict] = field(default_factory=dict)
 
@@ -44,9 +46,13 @@ class SetupInput:
             value = getattr(self, name)
             if value is None or value == "" or (value == [] and name != "exclusions"):
                 missing.append(name)
+        if self.storage_consistency_mode == "best-effort-personal" and not self.best_effort_risk_acknowledged:
+            missing.append("best_effort_risk_acknowledged")
         return missing
 
     def validate_complete(self) -> None:
+        if self.storage_consistency_mode not in {"strict", "best-effort-personal"}:
+            raise ValidationError("storage consistency mode must be strict or best-effort-personal")
         missing = self.missing_fields()
         if missing:
             raise ValidationError("missing setup fields: " + ", ".join(missing))
@@ -67,6 +73,7 @@ def consolidated_interview(setup: SetupInput) -> str | None:
         "daily_time": "daily start time",
         "weekly_day": "weekly maintenance day",
         "weekly_time": "weekly maintenance start time",
+        "best_effort_risk_acknowledged": "approval for the non-atomic personal-instance lock and its concurrency risk",
     }
     requested = ", ".join(labels[name] for name in missing)
     return (
@@ -88,7 +95,10 @@ def setup_summary(setup: SetupInput) -> str:
         f"- Exclusions: {', '.join(setup.exclusions or []) or 'None'}\n"
         f"- Language/timezone: {setup.language} / {setup.timezone}\n"
         f"- Daily start: {setup.daily_time}; weekly: {setup.weekly_day} {setup.weekly_time}\n"
-        "- Initialization: up to 5 separately accounted investigations\n"
+        f"- Storage consistency: {setup.storage_consistency_mode}"
+        + (" (permanent Drive lock; expires after 20 hours; non-atomic and best-effort only)\n"
+           if setup.storage_consistency_mode == "best-effort-personal" else "\n")
+        + "- Initialization: up to 5 separately accounted investigations\n"
         "- Daily: every primary topic receives a finite refresh outside 5 normal / urgent-only maximum 10 queue attempts\n"
         "- Storage/runtime: private Google Drive raw files and an immutable pinned snapshot\n"
     )

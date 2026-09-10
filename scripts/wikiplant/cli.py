@@ -135,7 +135,7 @@ def run_e2e(root: Path) -> dict:
     capabilities = CapabilityProfile(
         google_drive_raw_create=True, google_drive_full_read=True, google_drive_content_update=True,
         google_drive_paginated_list=True, private_skill_install=True, scheduled_task_create=True,
-        scheduled_task_inspect=True, conditional_write=True, serialized_task_runs=True,
+        scheduled_task_inspect=True, conditional_write=True, idempotent_create=True, serialized_task_runs=True,
         observed_surface="synthetic-local", observed_at="2026-01-15T00:00:00+00:00",
     )
     host = FakeHost(capabilities)

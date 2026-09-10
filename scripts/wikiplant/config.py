@@ -35,6 +35,18 @@ def validate_config(config: dict[str, Any], *, activated: bool = True, topic_reg
         raise ValidationError("instance.timezone must be an IANA timezone") from exc
     if config.get("storage", {}).get("provider") != "google-drive":
         raise ValidationError("Google Drive is the only supported operational storage provider")
+    storage = config.get("storage", {})
+    consistency_mode = storage.get("consistency_mode", "strict")
+    if consistency_mode not in {"strict", "best-effort-personal"}:
+        raise ValidationError("storage.consistency_mode must be strict or best-effort-personal")
+    personal_lock = storage.get("personal_lock")
+    if consistency_mode == "best-effort-personal":
+        if (not isinstance(personal_lock, dict) or not personal_lock.get("file_id")
+                or personal_lock.get("logical_path") != "data/state/research.lock.json"
+                or personal_lock.get("stale_after_hours") != 20):
+            raise ValidationError("best-effort personal storage requires the mapped permanent 20-hour lock")
+    elif personal_lock is not None:
+        raise ValidationError("strict storage cannot declare a best-effort personal lock")
     if version == 2 and "primary_topics" in config:
         raise ValidationError("TOPICS.md is authoritative; v2 config cannot contain primary_topics")
     topics = config.get("primary_topics", []) if version == 1 else config.get("primary_topic_ids", [])

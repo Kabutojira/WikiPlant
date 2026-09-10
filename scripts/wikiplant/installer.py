@@ -14,7 +14,7 @@ from .manifest import manifest_bytes, verify_manifest
 from .schedules import render_task_prompt, task_to_record
 from .setup import SetupInput, setup_summary, topic_records
 from .skillgen import SkillBinding, generate_skill
-from .storage import FOLDER_MIME, expected_mime
+from .storage import BEST_EFFORT_LOCK_HOURS, BEST_EFFORT_PERSONAL, FOLDER_MIME, expected_mime, initial_lock_record
 from .util import pretty_json, sha256_bytes, sha256_text, slugify
 from .yamlio import dumps as yaml_dumps, loads as yaml_loads
 from .topics import Topic, TopicRegistry
@@ -198,10 +198,30 @@ class Installer:
             added_at=setup.confirmed_at, reviewed_at=setup.confirmed_at, scope_revision=1, aliases=t["aliases"],
             authorization=setup.topic_authorizations[t["id"]], related_page_ids=t["related_page_ids"],
         ) for t in topics])
+        storage_config = {
+            "provider": "google-drive",
+            "root_folder_id": root,
+            "consistency_mode": setup.storage_consistency_mode,
+        }
+        lock_id = None
+        if setup.storage_consistency_mode == BEST_EFFORT_PERSONAL:
+            lock_path = "data/state/research.lock.json"
+            lock_id = self._file(
+                state,
+                folders["data/state"],
+                lock_path,
+                pretty_json(initial_lock_record(state.instance_id)).encode(),
+                "application/json",
+            )
+            storage_config["personal_lock"] = {
+                "file_id": lock_id,
+                "logical_path": lock_path,
+                "stale_after_hours": BEST_EFFORT_LOCK_HOURS,
+            }
         config = {
             "schema_version": 2,
             "instance": {"id": state.instance_id, "name": setup.instance_name, "language": setup.language, "timezone": setup.timezone},
-            "storage": {"provider": "google-drive", "root_folder_id": root},
+            "storage": storage_config,
             "runtime": {"release_id": manifest["release_id"], "source_commit": manifest["source_commit"], "manifest_sha256": sha256_bytes(manifest_bytes(manifest)), "upgrades": "explicit-user-request"},
             "skill": {"per_instance": True, "installed_reference": None, "routing_profile_revision": 1},
             "primary_topic_ids": [t["id"] for t in topics],
@@ -228,6 +248,8 @@ class Installer:
             "\n".join(f"- {v}" for v in (setup.exclusions or [])) + "\n"
         )
         files: dict[str, dict[str, str]] = {}
+        if lock_id:
+            files["data/state/research.lock.json"] = {"id": lock_id, "mime_type": "application/json"}
         initial = {
             "config.yml": yaml_dumps(config).encode(),
             "data/SCOPE.md": scope.encode(),
@@ -326,6 +348,12 @@ class Installer:
         fresh_state = InstallState(instance_id=self._derive_instance_id(setup))
         if not self.host.capabilities.storage_ready():
             return self._block(fresh_state, "Google Drive raw create/full-read/content-update/pagination capabilities are required", InstallPhase.DISCOVERED)
+        if setup.storage_consistency_mode == "strict" and not self.host.capabilities.strict_consistency_ready():
+            return self._block(
+                fresh_state,
+                "strict mode requires conditional writes, idempotent creation, and serialized task runs; explicitly approve best-effort-personal mode to use the permanent 20-hour lock",
+                InstallPhase.DISCOVERED,
+            )
         ancestor = self.parent_id
         visited = set()
         while ancestor:
@@ -347,6 +375,12 @@ class Installer:
         if not state.completed(InstallPhase.CAPABILITIES_CHECKED):
             if not self.host.capabilities.storage_ready():
                 return self._block(state, "Google Drive raw create/full-read/content-update/pagination capabilities are required", InstallPhase.DISCOVERED)
+            if setup.storage_consistency_mode == "strict" and not self.host.capabilities.strict_consistency_ready():
+                return self._block(
+                    state,
+                    "strict mode requires conditional writes, idempotent creation, and serialized task runs; explicitly approve best-effort-personal mode to use the permanent 20-hour lock",
+                    InstallPhase.DISCOVERED,
+                )
             self._advance(state, InstallPhase.CAPABILITIES_CHECKED)
         if stop_after == InstallPhase.CAPABILITIES_CHECKED:
             return state

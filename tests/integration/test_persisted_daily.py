@@ -12,7 +12,7 @@ from wikiplant.orchestrator import DailyRunStore, run_daily, run_weekly
 from wikiplant.queue import DailyBudget, QueueItem, read_queue, write_queue
 from wikiplant.records import ResearchResult, SourceRecord, Claim
 from wikiplant.reporting import ReportPublisher
-from wikiplant.storage import Binding, SafeWriter
+from wikiplant.storage import BEST_EFFORT_PERSONAL, Binding, PermanentDriveLock, SafeWriter, initial_lock_record
 from wikiplant.topics import Topic, TopicRegistry
 from wikiplant.storage import create_artifact
 from wikiplant.util import pretty_json
@@ -174,7 +174,36 @@ class PersistedDailyTests(unittest.TestCase):
         store = DailyRunStore(writer, self.binding(self.state), self.binding(self.queue), self.evidence.id, execution_guard=lambda: None)
         result = self.run_cycle(store=store)
         self.assertEqual(self.calls, [])
-        self.assertIn("serialization", result.gaps[0])
+        self.assertIn("execution guard", result.gaps[0])
+
+    def test_best_effort_personal_lock_guards_research_cycle(self):
+        lock_raw = self.file("research.lock.json", "application/json", pretty_json(initial_lock_record("wp-test")).encode())
+        lock_binding = Binding("data/state/research.lock.json", lock_raw.id, lock_raw.mime_type, self.root.id)
+        lock = PermanentDriveLock(self.drive, lock_binding, self.root.id, instance_id="wp-test")
+        lock.acquire("daily-run-a", NOW)
+        self.drive.conditional_write = False
+        self.drive.idempotent_create = False
+        writer = SafeWriter(
+            self.drive, self.root.id, self.ops.id, self.inbox.id, instance_id="wp-test",
+            consistency_mode=BEST_EFFORT_PERSONAL, personal_lock=lock, lock_owner_token="daily-run-a",
+            clock=lambda: NOW + timedelta(minutes=1),
+        )
+        store = DailyRunStore(writer, self.binding(self.state), self.binding(self.queue), self.evidence.id,
+                              execution_guard=writer.execution_guard)
+        outcome = self.run_cycle(store=store)
+        self.assertEqual(len(outcome.monitoring), 1)
+        self.assertEqual(self.calls, ["monitor"])
+        lock.release("daily-run-a", NOW + timedelta(minutes=2))
+        blocked_writer = SafeWriter(
+            self.drive, self.root.id, self.ops.id, self.inbox.id, instance_id="wp-test",
+            consistency_mode=BEST_EFFORT_PERSONAL, personal_lock=lock, lock_owner_token="daily-run-b",
+            clock=lambda: NOW + timedelta(minutes=3),
+        )
+        blocked_store = DailyRunStore(blocked_writer, self.binding(self.state), self.binding(self.queue), self.evidence.id,
+                                      execution_guard=blocked_writer.execution_guard)
+        blocked = self.run_cycle(store=blocked_store)
+        self.assertIn("lock ownership", blocked.gaps[0])
+        self.assertEqual(self.calls, ["monitor"])
 
     def test_weekly_release_notice_survives_audit_failure(self):
         saved = []

@@ -8,15 +8,16 @@ Installation records observed capabilities in `installation/capability-profile.j
 | Drive full current content read by exact ID | yes | non-truncated raw bytes/text |
 | Drive same-ID content update | yes | observed ID/revision/hash readback |
 | Paginated folder inventory | yes | tokens/pages exhausted explicitly |
-| Snapshot-bound conditional update | canonical writes | observed provider precondition and forced stale-edit rejection |
-| Idempotent immutable creation | canonical operation journals | observed create/reconcile behavior under lost responses and overlap |
-| Whole-run execution serialization | autonomous attempt reservations | observed host guarantee and forced-overlap outcome; CAS on a file alone is insufficient |
+| Snapshot-bound conditional update | strict canonical writes | observed provider precondition and forced stale-edit rejection |
+| Idempotent immutable creation | strict canonical operation journals | observed create/reconcile behavior under lost responses and overlap |
+| Whole-run execution serialization | strict autonomous attempt reservations | observed host guarantee and forced-overlap outcome |
+| Permanent raw lock read/replace | best-effort personal mode only | exact mapped ID/readback; owner/acquisition/expiry; fixed 20-hour stale threshold |
 | Private skill install/update | yes | host installation reference + fresh invocation |
 | Native task create/inspect | yes | real task IDs, prompts, schedules, next occurrences |
 | Notification receipt | no (tracked separately) | user/host observation only |
 | Python helper execution bridge | required for helper-dependent steps | actual Work execution receipt; helpers never call connectors |
 
-Availability is account, workspace, surface, and permission dependent. This version's canonical helper requires conditional replacement and idempotent creation; daily reservation execution additionally requires an observed serialization guard. Capabilities default absent. Weak adapters accept scoped unique durable intake but do not replace canonical files. A future alternate commit protocol needs its own proved adapter guarantees and overlap tests. Do not call a mutable Drive lock atomic.
+Availability is account, workspace, surface, and permission dependent. Strict mode requires conditional replacement and idempotent creation; daily reservation execution additionally requires an observed serialization guard. When only raw read/replace is available, an explicitly approved `best-effort-personal` instance may use one permanent lock record. It refuses a live lock, reclaims it at/after 20 hours, verifies ownership before work, and unlocks rather than deleting the file. This is not atomic: duplicate acquisition and lost updates remain possible. Capabilities default absent, and every best-effort run/result must disclose that residual risk.
 
 Current repository status: local fake adapter implemented; live capability profile `NOT RUN` in this workspace.
 

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wikiplant.invalid/schemas/personal-run-lock-v1.json",
+  "type": "object",
+  "required": ["schema_version", "kind", "instance_id", "mode", "status", "owner_token", "acquired_at", "expires_at", "released_at", "stale_after_hours", "warning"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "kind": {"const": "wikiplant-personal-run-lock"},
+    "instance_id": {"type": "string", "minLength": 1},
+    "mode": {"const": "best-effort-personal"},
+    "status": {"enum": ["locked", "unlocked"]},
+    "owner_token": {"type": ["string", "null"], "maxLength": 256},
+    "acquired_at": {"type": ["string", "null"], "format": "date-time"},
+    "expires_at": {"type": ["string", "null"], "format": "date-time"},
+    "released_at": {"type": ["string", "null"], "format": "date-time"},
+    "stale_after_hours": {"const": 20},
+    "warning": {"type": "string", "minLength": 1},
+    "recovered_stale_lock": {"type": "boolean"},
+    "last_owner_token": {"type": "string", "maxLength": 256},
+    "last_acquired_at": {"type": ["string", "null"], "format": "date-time"}
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"status": {"const": "locked"}}},
+      "then": {"properties": {"owner_token": {"type": "string", "minLength": 1}, "acquired_at": {"type": "string"}, "expires_at": {"type": "string"}}}
+    },
+    {
+      "if": {"properties": {"status": {"const": "unlocked"}}},
+      "then": {"properties": {"owner_token": {"type": "null"}, "acquired_at": {"type": "null"}, "expires_at": {"type": "null"}}}
+    }
+  ],
+  "additionalProperties": false
+}

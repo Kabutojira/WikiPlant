@@ -205,7 +205,7 @@ class PersistentMonitoringLedger(MonitoringLedger):
 
     def save(self):
         if not self.execution_guard():
-            raise ValidationError("monitoring requires observed execution serialization")
+            raise ValidationError("monitoring requires an observed strict or best-effort execution guard")
         payload = pretty_json(self.to_dict()).encode()
         op = f"monitoring:{self.snapshot.revision}:{sha256_text(payload.decode())}"
         self.snapshot = self.writer.replace(self.binding, payload, op, base=self.snapshot).current

@@ -38,6 +38,10 @@ class ConfigManifestSkillTests(unittest.TestCase):
         first = build_manifest(ROOT, "0.1.0", commit)
         second = build_manifest(ROOT, "0.1.0", commit)
         self.assertEqual(manifest_bytes(first), manifest_bytes(second))
+        self.assertNotIn("conditional_write", first["required_capabilities"])
+        self.assertNotIn("idempotent_create", first["required_capabilities"])
+        self.assertNotIn("serialized_execution", first["required_capabilities"])
+        self.assertTrue({"raw_create", "raw_full_read", "raw_content_update", "paginated_inventory"} <= set(first["required_capabilities"]))
         verify_manifest(ROOT, first, resolved_commit=commit)
         tampered = json.loads(manifest_bytes(first))
         tampered["files"][0]["sha256"] = "0" * 64

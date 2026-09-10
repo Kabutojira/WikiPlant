@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "wikiplant"
-version = "0.2.0"
+version = "0.2.1"
 description = "Deterministic helpers for a Drive-backed ChatGPT Work research wiki"
 requires-python = ">=3.11"
 dependencies = []

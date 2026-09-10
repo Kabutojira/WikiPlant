@@ -7,6 +7,7 @@ instance:
 storage:
   provider: google-drive
   root_folder_id: null
+  consistency_mode: strict
 runtime:
   release_id: null
   source_commit: null

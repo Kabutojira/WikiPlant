@@ -4,11 +4,11 @@ Baseline: `c5907ca3fb2d44df2f73ce0b3202909f548e7ef0`, 2026-09-10. Initial tree: 
 
 Baseline commands: `PYTHONPATH=scripts python -m unittest discover -s tests -p 'test_*.py'` — 64 tests PASS. `PYTHONPATH=scripts python -m wikiplant.cli validate --root .` — PASS. These are local checks only.
 
-Final local checkpoint, 2026-09-10: **178 tests PASS**, repository validator PASS, draft packaging PASS, synthetic installer e2e PASS. Source version: **0.2.0**. Local M0–M7 implementation and M8 migration are present; behavioral release acceptance is PARTIAL and live acceptance is NOT RUN. This evidence records no live Drive mutation, permission change or schedule operation. Git hosting state and detached release assets must be verified independently from the checkout.
+Final local checkpoint, 2026-09-10: **186 tests PASS**, repository validator PASS, draft packaging PASS, synthetic installer e2e PASS. Source version: **0.2.1 development**. Local M0–M7 implementation, M8 migration, and the opt-in best-effort personal lock mode are present; behavioral release acceptance is PARTIAL and live acceptance is NOT RUN. This evidence records no live Drive mutation, permission change or schedule operation. Git hosting state and detached release assets must be verified independently from the checkout.
 
 ## Shared v2 implementation contracts
 
-- Storage: `SafeWriter.replace(binding, content, operation_id, *, base: FileSnapshot)` requires the exact generation snapshot; returns a `WriteReceipt` with historical verified identity and current snapshot. Durable immutable intent/completion records and paginated exact reads drive replay. Capabilities default absent. Weak adapters preserve scoped intake but block canonical replacement; uncertain creates reconcile by immutable name/content and never blindly retry.
+- Storage: `SafeWriter.replace(binding, content, operation_id, *, base: FileSnapshot)` requires the exact generation snapshot; returns a `WriteReceipt` with historical verified identity and current snapshot. Durable immutable intent/completion records and paginated exact reads drive replay. Strict mode blocks weak adapters. Explicit best-effort personal mode binds a weak writer to a mapped permanent lock with owner/readback checks and an exact 20-hour stale threshold; it reduces overlap but remains non-atomic. Uncertain creates reconcile by immutable name/content and never blindly retry.
 - Scope: `TopicRegistry` serializes to authoritative TOPICS Markdown. `AdmissionDecision` records disposition, scope revision, contribution and lineage. Topic IDs remain queue/calendar links. Config v2 uses `primary_topic_ids`; legacy v1 remains migration input. Changed/new contracts declare schema version 2; unchanged instance identity, mapping, schedule and queue-row formats retain their existing version. Old changed-format input is migrated rather than silently reinterpreted.
 - Claims: keep `Claim` and `SourceRecord` in `records.py`; add optional evidence/dependency/assessment fields compatibly. The wiki embeds complete canonical JSON metadata and generates readable claims. Structural validation is not semantic truth assessment.
 - Authorization: separate `authorization.py` holds a structured current-turn decision bound to instance/operation/target. Command payloads carry it; text routing is only a proposal. Scheduled grants are scoped separately from user commands and never permit anchors or software updates.
@@ -61,19 +61,19 @@ Saved research and material monitoring now independently resolve assessment/sour
 | Canonical receipts | A folder, arbitrary Markdown file, forged COMPLETE-shaped artifact, mismatched original intent or unrelated page cannot remove queue work. Later legitimate edits do not invalidate historical proof. |
 | Report coverage/publication | The fourth finding has a substantive appendix entry; deferred evidence stays pending; per-record coverage works across dates; saved raw reports resolve; uncertain claims remain uncertain despite an inflated callback confidence. Lost native responses reconcile independently of research. |
 | Honest accounting | Raw run state and saved reports separate queue slots and per-topic query/source counters, active/archive registry totals, queue age/deferrals and challenge coverage. External bytes/latency/cost are unknown when not exposed. |
-| Whole-run overlap | An absent serialization guard blocks canonical execution before callbacks; weak adapters preserve intake but cannot write projections. This is not live provider concurrency proof. |
+| Whole-run overlap | An absent execution guard blocks callbacks. Strict mode still requires observed serialization. Best-effort mode locally refuses a live lock, reclaims exactly at 20 hours, and rejects cross-owner release; simultaneous acquisition remains a disclosed race. This is not live provider concurrency proof. |
 
 ## Final commands and release boundary
 
 ```text
 PYTHONPATH=scripts python -m unittest discover -s tests -p 'test_*.py'
-  PASS — 178 tests
+  PASS — 186 tests
 PYTHONPATH=scripts python -m wikiplant.cli package --root . --draft
   PASS — release/runtime-manifest.json (draft, not installable)
 PYTHONPATH=scripts python -m wikiplant.cli validate --root .
   PASS — schemas, templates, policies, private-marker scan, manifest and runtime import closure
 PYTHONPATH=scripts python -m wikiplant.cli e2e --root .
-  PASS — synthetic only: 1 skill, 2 tasks, 1 seed attempt, 164 fake Drive objects
+  PASS — synthetic only: 1 skill, 2 tasks, 1 seed attempt, 165 fake Drive objects
 git diff --check
   PASS
 ```

@@ -4,6 +4,8 @@ The generated per-instance skill routes normal chat requests and progressively l
 
 Daily order is recovery/intake, calendar, mandatory per-primary-topic monitoring, bounded discovery, metered queue research, synthesis, verified report save, and native result. Each topic pass has finite query/source counters outside queue attempts. Queue slots 1–5 accept eligible work in numeric order; slots 6–10 are priority-0 only. Resume never resets the local-date budget.
 
+Before initialization, daily, or weekly research, strict instances require their observed provider/host guard. Best-effort personal instances acquire the mapped permanent lock, refuse it while younger than 20 hours, re-check ownership before every external call/write, and set it to unlocked during final cleanup. A stale recovery and the mode's non-atomic residual risk appear in operational reporting.
+
 Weekly work performs full structural lint and a bounded rotating semantic audit, persists proposals safely, and queues deeper research. It may announce release metadata but cannot upgrade.
 
 V2 reads `TOPICS.md` for user anchors and classified topics; configuration contains only monitored anchor IDs. Shared admission limits active automatic obligations and preserves visible deferred/user work. Peripheral questions cannot spawn research or recurrence, expire at a fixed future maintenance checkpoint, and become compact capsules with source/claim/lineage references. Ordinary retrieval fetches bounded active matches and selective archive entries.

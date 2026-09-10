@@ -1,16 +1,18 @@
 from __future__ import annotations
 
+import json
 import unittest
 from pathlib import Path
 
 from wikiplant.errors import ValidationError
-from wikiplant.fake_drive import FakeDrive
+from wikiplant.fake_drive import FakeDrive, WeakDrive
 from wikiplant.host import CapabilityProfile, FakeHost, set_instance_tasks_active
 from wikiplant.installer import InstallPhase, Installer
 from wikiplant.manifest import build_manifest
 from wikiplant.setup import SetupInput, consolidated_interview, topic_records
 from wikiplant.authorization import UserAuthorization, request_digest
 from wikiplant.util import sha256_text
+from wikiplant.yamlio import loads as yaml_loads
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -21,7 +23,7 @@ def capabilities(**overrides) -> CapabilityProfile:
     values = dict(
         google_drive_raw_create=True, google_drive_full_read=True, google_drive_content_update=True,
         google_drive_paginated_list=True, private_skill_install=True, scheduled_task_create=True,
-        scheduled_task_inspect=True, conditional_write=True, serialized_task_runs=True,
+        scheduled_task_inspect=True, conditional_write=True, idempotent_create=True, serialized_task_runs=True,
         observed_surface="synthetic", observed_at="2026-01-15T00:00:00+00:00",
     )
     values.update(overrides)
@@ -47,8 +49,8 @@ class InstallerTests(unittest.TestCase):
     def setUpClass(cls):
         cls.manifest = build_manifest(ROOT, "0.1.0", COMMIT)
 
-    def environment(self, *, host_caps=None, auto_install=True):
-        drive = FakeDrive()
+    def environment(self, *, host_caps=None, auto_install=True, drive_class=FakeDrive):
+        drive = drive_class()
         parent = drive.create_folder(None, "private-parent", idempotency_key="parent")
         host = FakeHost(host_caps or capabilities(), auto_install_skill=auto_install)
         return drive, parent, host, Installer(ROOT, drive, host, parent.id)
@@ -115,6 +117,30 @@ class InstallerTests(unittest.TestCase):
         self.assertEqual(result.phase, InstallPhase.BLOCKED.name)
         self.assertEqual(result.last_completed_phase, InstallPhase.SEEDED.name)
         self.assertEqual(result.task_ids, {})
+
+    def test_missing_strict_guards_requires_explicit_best_effort_mode(self):
+        weak_caps = capabilities(conditional_write=False, idempotent_create=False, serialized_task_runs=False)
+        drive, parent, host, installer = self.environment(host_caps=weak_caps, drive_class=WeakDrive)
+        blocked = installer.run(setup(parent.id), self.manifest, COMMIT)
+        self.assertEqual(blocked.phase, InstallPhase.BLOCKED.name)
+        self.assertIn("best-effort-personal", blocked.blocked_reason)
+
+    def test_best_effort_mode_provisions_mapped_permanent_twenty_hour_lock(self):
+        weak_caps = capabilities(conditional_write=False, idempotent_create=False, serialized_task_runs=False)
+        drive, parent, host, installer = self.environment(host_caps=weak_caps, drive_class=WeakDrive)
+        values = setup(parent.id)
+        values.storage_consistency_mode = "best-effort-personal"
+        values.best_effort_risk_acknowledged = True
+        result = installer.run(values, self.manifest, COMMIT)
+        self.assertEqual(result.phase, InstallPhase.ACTIVE_AWAITING_FIRST_RUN.name)
+        mapping = json.loads(drive.read_exact(result.map_file_id).content)
+        lock_mapping = mapping["files"]["data/state/research.lock.json"]
+        lock_record = json.loads(drive.read_exact(lock_mapping["id"]).content)
+        config = yaml_loads(drive.read_exact(result.config_file_id).content.decode())
+        self.assertEqual(lock_record["status"], "unlocked")
+        self.assertEqual(lock_record["stale_after_hours"], 20)
+        self.assertEqual(config["storage"]["consistency_mode"], "best-effort-personal")
+        self.assertEqual(config["storage"]["personal_lock"]["file_id"], lock_mapping["id"])
 
     def test_five_seed_cap_and_resume(self):
         drive, parent, host, installer = self.environment()
