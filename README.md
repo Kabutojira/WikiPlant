@@ -7,10 +7,13 @@ WikiPlant is a public, domain-neutral scaffold for creating a private, evidence-
 In ChatGPT Work, send:
 
 ```text
-Install WikiPlant from https://github.com/Kabutojira/WikiPlant
+@Google Drive Install WikiPlant from https://github.com/Kabutojira/WikiPlant
+Use this private parent folder: <google-drive-folder-link>
 ```
 
-Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions a private Drive instance, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. No API key, local checkout, ZIP upload, GitHub account, or copied Drive file ID belongs in the supported user flow.
+Create the empty private parent folder in Drive first and paste its normal sharing link in place of the placeholder. If you prefer Work to ask for the destination, omit the second line. The folder link selects the destination; you do not create or upload a manifest, runtime file, ZIP, or Google Doc.
+
+Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions a private Drive instance, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. If the surface cannot read a GitHub release attachment, it uses the release's immutable raw manifest mirror and verifies the bytes against GitHub's asset digest. No API key, local checkout, ZIP upload, GitHub account, copied Drive file ID, or user-created manifest belongs in the supported flow.
 
 This is the **0.2.0 scaffold**, with version 2 data contracts and a conservative migration from version 1. A usable published installation source consists of an immutable GitHub release and its matching detached release-manifest asset; a version string or branch commit alone is not a release. `release/runtime-manifest.json` is only a non-installable development inventory. The installer rejects draft or mismatched releases.
 

@@ -16,6 +16,7 @@ from wikiplant.releases import ReleaseCheckState, ReleaseCheckStore, ReleaseInfo
 from wikiplant.fake_drive import FakeDrive
 from wikiplant.storage import Binding, SafeWriter
 from wikiplant.upgrades import available_update
+from wikiplant.util import sha256_bytes
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -105,6 +106,24 @@ class ReleaseHardeningTests(unittest.TestCase):
             paths.remove("scripts/wikiplant/releases.py")
             with self.assertRaises(ValidationError):
                 verify_dependency_closure(target, paths)
+
+    def test_published_manifest_mirror_matches_release_asset_identity(self):
+        path = ROOT / "release/published/wikiplant-0.2.0.manifest.json"
+        payload = path.read_bytes()
+        self.assertEqual(sha256_bytes(payload), "1850a15a1a53247930b0716f5966caa478942a2758cfd266c924945337dcba50")
+        manifest = json.loads(payload)
+        self.assertEqual(manifest["source_commit"], "d3afb1aafaef16dd807117bd44548b9f3f57fba6")
+        self.assertEqual(manifest["status"], "released")
+        self.assertNotIn(path.relative_to(ROOT).as_posix(), {entry["path"] for entry in manifest["files"]})
+        verify_manifest(ROOT, manifest, resolved_commit=manifest["source_commit"])
+
+    def test_install_handoff_never_asks_user_to_manufacture_manifest(self):
+        install = (ROOT / "INSTALL.md").read_text()
+        readme = (ROOT / "README.md").read_text()
+        self.assertIn("manifest_mirror", install)
+        self.assertIn("Do not ask the user to create, copy, paste, upload or convert a manifest", install)
+        self.assertIn("@Google Drive", readme)
+        self.assertIn("<google-drive-folder-link>", readme)
 
     def test_publishing_manifest_requires_real_committed_payloads(self):
         with tempfile.TemporaryDirectory() as folder:
