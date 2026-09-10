@@ -7,7 +7,7 @@ WikiPlant is a public, domain-neutral scaffold for creating a private, evidence-
 In ChatGPT Work, send:
 
 ```text
-Install WikiPlant from <public-repository-url>.
+Install WikiPlant from https://github.com/Kabutojira/WikiPlant
 ```
 
 Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions a private Drive instance, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. No API key, local checkout, ZIP upload, GitHub account, or copied Drive file ID belongs in the supported user flow.
