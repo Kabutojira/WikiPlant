@@ -42,8 +42,10 @@ EXCLUDED_NAMES = {"__pycache__", ".DS_Store", ".gitkeep"}
 DEVELOPMENT_ONLY_PATHS = {
     "scripts/wikiplant/cli.py",
     "scripts/wikiplant/fake_drive.py",
+    "scripts/wikiplant/fake_github.py",
     "scripts/wikiplant/host.py",
     "scripts/wikiplant/installer.py",
+    "scripts/wikiplant/github_installer.py",
 }
 
 

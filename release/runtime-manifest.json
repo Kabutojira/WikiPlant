@@ -10,8 +10,8 @@
     {
       "encoding": "utf-8",
       "path": "cron/daily.prompt.md.template",
-      "sha256": "3be64a0c6fdbd0f94ec744210196189f2b3b0b6a58f355f439a84e3e692eb18d",
-      "size": 1660
+      "sha256": "11629b1980d9f9c9fc68c425eb89c4e3d0c3baf18187a07163705ab2eeef2f3e",
+      "size": 2232
     },
     {
       "encoding": "utf-8",
@@ -22,8 +22,8 @@
     {
       "encoding": "utf-8",
       "path": "cron/weekly.prompt.md.template",
-      "sha256": "e34f7e3ae5a8473f1215bc9b10589126274e913a135e29a86b8b4bc744c02e8b",
-      "size": 1667
+      "sha256": "d1318cadf7c39ba2ee81347c94ac928af51528e8fb463f993aea572ca0b6a4e8",
+      "size": 2225
     },
     {
       "encoding": "utf-8",
@@ -76,8 +76,8 @@
     {
       "encoding": "utf-8",
       "path": "schemas/config.schema.json",
-      "sha256": "ad35b1736e63101f9bf5c3af16fa1dd42a9feb5ee54c1c5e1acb17e3ba70d5fd",
-      "size": 3764
+      "sha256": "6bbaca927808c7904b5b7ee38b76cc462d570fa7f3d06b16ba173750b6703e50",
+      "size": 5495
     },
     {
       "encoding": "utf-8",
@@ -100,8 +100,8 @@
     {
       "encoding": "utf-8",
       "path": "schemas/instance.schema.json",
-      "sha256": "7b6614fdceebf2d2a9698c0ae71ddd08d321a53853868650d8f4ad09fc027c83",
-      "size": 762
+      "sha256": "7808b397b4782cea88474b2d2840331925156062a6c5060a22ff51b5d07b8295",
+      "size": 3062
     },
     {
       "encoding": "utf-8",
@@ -244,8 +244,8 @@
     {
       "encoding": "utf-8",
       "path": "scripts/wikiplant/config.py",
-      "sha256": "8d7d6f16e740c54e86cf11e807d347e108f53043d0b178c029419e6ce7397f6e",
-      "size": 6563
+      "sha256": "08d7a3bc9a1ecb3d6944855a49433580d52302135b7642783ed34e6310c8d6ee",
+      "size": 9716
     },
     {
       "encoding": "utf-8",
@@ -261,9 +261,21 @@
     },
     {
       "encoding": "utf-8",
+      "path": "scripts/wikiplant/github_storage.py",
+      "sha256": "d50168f5d71b746685f664f3da8b93fa993036ffb5d8b82dd0ee3eba804cb3dc",
+      "size": 53176
+    },
+    {
+      "encoding": "utf-8",
       "path": "scripts/wikiplant/initialization.py",
       "sha256": "6254de3e3947c30ba1fd4882c34262c0532596f796bceef014cd726afc04047b",
       "size": 3520
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/instance.py",
+      "sha256": "42dd6e7d5a6723d609699315aaf8ac65b6fcffa52ee7c866942e9a50a6678ed9",
+      "size": 3236
     },
     {
       "encoding": "utf-8",
@@ -280,8 +292,8 @@
     {
       "encoding": "utf-8",
       "path": "scripts/wikiplant/manifest.py",
-      "sha256": "161c0a9c10a40cd2a4d971101f90ef50c50b3f8a7278b10dc8b1f49fdfffa392",
-      "size": 10440
+      "sha256": "749b2b0d2aafe755435d2d8151f462fb65d20748e390122e72598f5cae9c2b82",
+      "size": 10525
     },
     {
       "encoding": "utf-8",
@@ -340,26 +352,44 @@
     {
       "encoding": "utf-8",
       "path": "scripts/wikiplant/schedules.py",
-      "sha256": "88561999679c138a4892385797e6185276481c8bb92d0d8a7bb2d472125b882e",
-      "size": 1266
+      "sha256": "47245a3bc33a74518d86a33f31ab89835556d22adb22c44ecb65f8d671b42fdd",
+      "size": 2213
     },
     {
       "encoding": "utf-8",
       "path": "scripts/wikiplant/setup.py",
-      "sha256": "60e2738d5d01c11ab451cbbc13043193d46b48f2fe2550fff096727d38fdce9a",
-      "size": 5390
+      "sha256": "a4f87bf3a94b30b45a9a8722665553617cca52dcdb85306e3e4868c00d080f8c",
+      "size": 7995
     },
     {
       "encoding": "utf-8",
       "path": "scripts/wikiplant/skillgen.py",
-      "sha256": "8fb3734f6342be17d57e3674c08ab6eb9f2423dfce534aaced2dc1146783c2bb",
-      "size": 6238
+      "sha256": "f44b35885c01f1be2771b1b6ebb394d3510bb9c7ecbaab0ed8c4c4e6877bfb9e",
+      "size": 10801
     },
     {
       "encoding": "utf-8",
       "path": "scripts/wikiplant/storage.py",
       "sha256": "220492fa724b2536b2a09c646ad4566a88853e3cfaeff1b2ff49e3a5ac5bd7f7",
       "size": 21821
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/storage_contract.py",
+      "sha256": "8a81895dd96cab899abca96c567544dfb3367f267f3fc9621dbe54ec80988ccd",
+      "size": 2184
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/storage_metrics.py",
+      "sha256": "3816a02d7b18b2a47585163ef4d888bcc65e5dc1a58358d7ae208c7b0cc2892c",
+      "size": 4309
+    },
+    {
+      "encoding": "utf-8",
+      "path": "scripts/wikiplant/storage_migration.py",
+      "sha256": "7b234dba7dde8e85f3814673d71943f4009ea349ec917d4ddf0a76ee61452970",
+      "size": 29336
     },
     {
       "encoding": "utf-8",
@@ -400,8 +430,8 @@
     {
       "encoding": "utf-8",
       "path": "skills/archive/WORKFLOW.md",
-      "sha256": "1a421e758c2cfa462d4610c9d5cda5aa9f1e1d7c55d699186fd37c54b5adeafe",
-      "size": 3867
+      "sha256": "eb0169263037f6b6cb2d83efe04e0854ea4bcef9055723a4d405b338572b5efe",
+      "size": 4021
     },
     {
       "encoding": "utf-8",
@@ -412,20 +442,20 @@
     {
       "encoding": "utf-8",
       "path": "skills/check-updates/WORKFLOW.md",
-      "sha256": "6bac5a0f9f6fc5e9a22605e395f66d8332612a5a19c660cadf4f89d0b17101bd",
-      "size": 1844
+      "sha256": "03e48c058bd0b55b1a3e8a5a7911240cd27c6573868b05f266b6ede0a149581b",
+      "size": 1954
     },
     {
       "encoding": "utf-8",
       "path": "skills/create-report/WORKFLOW.md",
-      "sha256": "c5879dd1f1ffeebfbdeca52b922a147302952e35c53c3fd90ca844032f6d6b41",
-      "size": 1649
+      "sha256": "dc00e7965f8b83a917904741c08edb71de3039c4022f91d4b55a33fd35d1f0b2",
+      "size": 1698
     },
     {
       "encoding": "utf-8",
       "path": "skills/daily-operation/WORKFLOW.md",
-      "sha256": "8cdab1e9f815fbd28d5058eda92db05569e6d51bd488e6d51f0aca429d68d70a",
-      "size": 3056
+      "sha256": "ff0b296e14c3cd4321dff9ad95646254fbf311aa4d1e75ce3643f32650c59888",
+      "size": 3620
     },
     {
       "encoding": "utf-8",
@@ -442,8 +472,8 @@
     {
       "encoding": "utf-8",
       "path": "skills/init/WORKFLOW.md",
-      "sha256": "8f17dd35e730985d12d0e9225a409c9f0198255f29ba501d44c033293ff2710f",
-      "size": 1414
+      "sha256": "db2dc44384ab229aec19bca33853f4588fe9342f15c3920ac6d5bd1b45720b77",
+      "size": 1560
     },
     {
       "encoding": "utf-8",
@@ -454,8 +484,8 @@
     {
       "encoding": "utf-8",
       "path": "skills/instance/SKILL.md.template",
-      "sha256": "263ef0c533309753ecd10cb399d090e6bba67b1616a5d5b757c44abafcaa4626",
-      "size": 1695
+      "sha256": "a5a893ba4fd0bb9abbbe46b9e9036877f983f4f6f4c100af79a2f30af7069f4e",
+      "size": 2136
     },
     {
       "encoding": "utf-8",
@@ -466,8 +496,8 @@
     {
       "encoding": "utf-8",
       "path": "skills/query/WORKFLOW.md",
-      "sha256": "1c5f14991b4f93bdb2ff53cd8526931c24f0aa536f8054537719b8aa16cbe385",
-      "size": 2655
+      "sha256": "f1b8765732d6661c341744bac98de7d1bc4df9a8b07fa35cb90f97cf16049f83",
+      "size": 2720
     },
     {
       "encoding": "utf-8",
@@ -484,20 +514,20 @@
     {
       "encoding": "utf-8",
       "path": "skills/topic-governance/WORKFLOW.md",
-      "sha256": "d72fc6e53307194237fe4ae478d3e6718e3b640046702dd5f2d236afa74b253f",
-      "size": 3770
+      "sha256": "abe1a4eba4d6965733e3ce815a444b5b99ca586990deefb4d6b5ab666368b622",
+      "size": 3842
     },
     {
       "encoding": "utf-8",
       "path": "skills/upgrade/WORKFLOW.md",
-      "sha256": "f657f7b1ac479099afdcf54a987b1a929a7c35a7a85665d8c1da844861b8af9f",
-      "size": 3405
+      "sha256": "7699d011217f71e8e4bb0e4b9b330ae57f4e9c35f8810dea4ea12c9a172a7cb1",
+      "size": 3909
     },
     {
       "encoding": "utf-8",
       "path": "skills/wiki-maintenance/WORKFLOW.md",
-      "sha256": "6fa605136ac40faad62538781121a4c1c818fb303fe831dc2a7deb155d34688c",
-      "size": 2297
+      "sha256": "1246ec8f09f57bcd052bf5a046a84f10d1fe76e50a9204904e60046782293139",
+      "size": 2529
     },
     {
       "encoding": "utf-8",
@@ -553,6 +583,6 @@
   ],
   "rollback": "Previous runtime must read the current schema; otherwise remain paused for validated repair. Never restore over later data.",
   "schema_version": 2,
-  "source_commit": "2eae82060330c45bd8ee1fabd8a8cdf45b69991e",
+  "source_commit": "8037224403e4eb6a38ee63e11eaddcc453803d89",
   "status": "draft"
 }

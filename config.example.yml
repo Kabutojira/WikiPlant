@@ -8,6 +8,13 @@ storage:
   provider: google-drive
   root_folder_id: null
   consistency_mode: strict
+  # GitHub alternative (opt in only): replace the Drive fields above with
+  # repository_id, repository (owner/name), canonical_ref, root_prefix: "",
+  # consistency_mode: git-fast-forward, and bounded limits. Initial limits are
+  # max_file_bytes: 512000, max_transaction_bytes: 8000000,
+  # max_repository_bytes: 500000000 (retained Git objects plus conservative
+  # prospective-object allowance), max_paths_per_transaction: 200.
+  # Never mix Drive and GitHub fields.
 runtime:
   release_id: null
   source_commit: null

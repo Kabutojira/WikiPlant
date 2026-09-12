@@ -3,14 +3,16 @@
 ```text
 public immutable release
   -> repository-URL bootstrap in ChatGPT Work
-  -> private Drive instance + pinned runtime snapshot
+  -> one private instance store + pinned runtime snapshot
+       -> Google Drive folder (implemented default)
+       -> dedicated private GitHub repository (capability-gated alternative)
   -> one private bound instance skill
        -> ordinary Chat query/intake
        -> Work initialize/daily/weekly/upgrade workflows
-  -> verified Drive writes + native task result
+  -> verified provider writes + native task result
 ```
 
-GitHub is distribution only. Google Drive is the sole operational store. Deterministic Python helpers validate and transform content but have no connector credentials and perform no network calls. Provider actions are executed by ChatGPT Work following the workflow modules and checked against the observed capability profile.
+Google Drive is the current/default operational store. GitHub is an implemented but live-unverified opt-in alternative; it never shares a writable instance with Drive. The public GitHub repository remains distribution-only. A GitHub-backed instance uses its own dedicated private repository. Deterministic Python helpers validate and transform content but have no connector credentials and perform no network calls. Provider actions are executed by ChatGPT Work following the workflow modules and checked against the observed capability profile.
 
 ## Ownership
 
@@ -29,3 +31,5 @@ Interactive and weekly changes are first written as uniquely named immutable com
 An explicitly approved `best-effort-personal` instance is the compatibility exception for a raw read/replace-only Drive connector. It uses one exact-ID permanent lock record with an owner token and a fixed 20-hour expiry, verifies it before work, and unlocks without deletion. It still uses snapshot/readback checks, but neither the lock nor a post-write readback is atomic. Reports label this reduced guarantee, and malformed/live locks fail closed.
 
 The local fake adapter proves replay, lost-response reconciliation, pagination, exact-ID/MIME checks, and conflict preservation. The actual connector serialization guarantee remains a live acceptance item.
+
+For the GitHub backend, a complete commit is the multi-file transaction and the bound branch ref is the canonical generation pointer. The writer creates a tree and sole-parent commit from the observed head, advances the ref with force disabled, and verifies the ref/tree/blobs. A racing sibling commit conflicts and is reconciled from durable original intent; it is never force-pushed. See [GitHub operational storage plan](github-storage-plan.md).

@@ -1,6 +1,6 @@
 # WikiPlant
 
-WikiPlant is a public, domain-neutral scaffold for creating a private, evidence-linked research wiki in Google Drive. Its production runner is native scheduled ChatGPT Work. Each installed instance has one private, topic-customized skill; GitHub distributes only immutable runtime releases and never stores operational data.
+WikiPlant is a public, domain-neutral scaffold for creating a private, evidence-linked research wiki. Google Drive is the supported default storage backend; a dedicated private GitHub repository is implemented as a capability-gated, opt-in alternative. Its production runner remains native scheduled ChatGPT Work. Each installed instance has one private, topic-customized skill and exactly one authoritative writable backend.
 
 ## Install from a repository URL
 
@@ -13,7 +13,9 @@ Use this private parent folder: <google-drive-folder-link>
 
 Create the empty private parent folder in Drive first and paste its normal sharing link in place of the placeholder. If you prefer Work to ask for the destination, omit the second line. The folder link selects the destination; you do not create or upload a manifest, runtime file, ZIP, or Google Doc.
 
-Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions a private Drive instance, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. If the surface cannot read a GitHub release attachment, it uses the release's immutable raw manifest mirror and verifies the bytes against GitHub's asset digest. No API key, local checkout, ZIP upload, GitHub account, copied Drive file ID, or user-created manifest belongs in the supported flow.
+Work must follow [INSTALL.md](INSTALL.md). It asks once for missing setup details, provisions the selected private storage backend, creates one personalized skill candidate, guides any required host installation action, seeds at most five investigations, and creates the native daily and weekly tasks. If the surface cannot read a GitHub release attachment, it uses the release's immutable raw manifest mirror and verifies the bytes against GitHub's asset digest. No API key, local checkout, ZIP upload, copied provider ID, or user-created manifest belongs in the supported flow. A GitHub account is needed only when the user explicitly selects the GitHub storage alternative.
+
+To request the GitHub alternative, replace the Drive destination line with `Use GitHub storage in this dedicated private repository: <repository-link>`. Installation proceeds only if the Work surface exposes the full observed write-capability profile; the standard read-only ChatGPT GitHub app does not qualify. Otherwise installation returns `BLOCKED_GITHUB_WRITE_CAPABILITY` without mutating the repository, and Drive remains available.
 
 Installations prefer strict conditional/idempotent Drive writes and serialized task runs. If the connected Drive surface exposes only raw create/read/replace/list operations, WikiPlant can instead use an explicitly approved `best-effort-personal` mode with one permanent lock file. The lock expires after 20 hours and reduces ordinary overlap, but it is not atomic and does not provide exactly-once execution.
 
@@ -35,10 +37,11 @@ The [hardening evidence map](docs/hardening-status.md) records implemented contr
 
 ## Architecture constraints
 
-- Google Drive is the only operational store.
+- Google Drive is the current/default operational store.
+- GitHub storage is a locally implemented, gated alternative: one dedicated private repository per instance, no mirroring or automatic fallback. Its fake-provider transaction, installer, migration, and failure tests pass, but it is not live-validated or enabled as the recommended default.
 - ChatGPT Work scheduled tasks are the production execution engine.
 - Internal workflows are progressive-load references, not separate installed skills.
 - Daily primary-topic monitoring has its own finite allowance and never consumes the normal five or urgent-qualified maximum ten queue attempts.
 - Upgrades are explicit, pinned, backed up, and reversible without deleting later research.
 
-See [docs/architecture.md](docs/architecture.md), [docs/operations.md](docs/operations.md), [docs/troubleshooting.md](docs/troubleshooting.md), and [PLAN.md](PLAN.md).
+See [docs/architecture.md](docs/architecture.md), the [GitHub storage plan](docs/github-storage-plan.md), [docs/operations.md](docs/operations.md), and [docs/troubleshooting.md](docs/troubleshooting.md).

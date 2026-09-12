@@ -17,13 +17,13 @@ ROOT = Path(__file__).resolve().parents[2]
 
 
 class ConfigManifestSkillTests(unittest.TestCase):
-    def test_yaml_roundtrip_and_google_drive_only(self):
+    def test_yaml_roundtrip_and_provider_fields_do_not_mix(self):
         config = loads((ROOT / "config.example.yml").read_text())
         validate_config(config, activated=False)
         restored = loads(dumps(config))
         self.assertEqual(restored, config)
         config["storage"]["provider"] = "github"
-        with self.assertRaises(ValidationError):
+        with self.assertRaisesRegex(ValidationError, "another provider"):
             validate_config(config, activated=False)
 
     def test_malicious_topic_is_inert_quoted_data(self):

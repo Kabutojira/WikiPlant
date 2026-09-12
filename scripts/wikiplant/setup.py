@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from typing import Any
 
@@ -13,7 +14,6 @@ REQUIRED_SETUP_FIELDS = (
     "primary_topics",
     "purpose",
     "exclusions",
-    "drive_parent_id",
     "daily_time",
     "weekly_day",
     "weekly_time",
@@ -30,6 +30,8 @@ class SetupInput:
     exclusions: list[str] | None = None
     initial_material: list[str] = field(default_factory=list)
     drive_parent_id: str | None = None
+    storage_provider: str | None = "google-drive"
+    github_repository_url: str | None = None
     language: str = "en"
     timezone: str = "UTC"
     daily_time: str | None = None
@@ -40,24 +42,48 @@ class SetupInput:
     confirmed_at: str | None = None
     topic_authorizations: dict[str, dict] = field(default_factory=dict)
 
+    def __post_init__(self) -> None:
+        # `strict` is the historical Drive default. Selecting GitHub resolves it
+        # to that provider's sole supported consistency contract.
+        if self.storage_provider == "github" and self.storage_consistency_mode == "strict":
+            self.storage_consistency_mode = "git-fast-forward"
+
     def missing_fields(self) -> list[str]:
         missing: list[str] = []
         for name in REQUIRED_SETUP_FIELDS:
             value = getattr(self, name)
             if value is None or value == "" or (value == [] and name != "exclusions"):
                 missing.append(name)
-        if self.storage_consistency_mode == "best-effort-personal" and not self.best_effort_risk_acknowledged:
+        if self.storage_provider is None:
+            missing.append("storage_provider")
+        elif self.storage_provider == "google-drive" and not self.drive_parent_id:
+            missing.append("drive_parent_id")
+        elif self.storage_provider == "github" and not self.github_repository_url:
+            missing.append("github_repository_url")
+        if self.storage_provider == "google-drive" and self.storage_consistency_mode == "best-effort-personal" and not self.best_effort_risk_acknowledged:
             missing.append("best_effort_risk_acknowledged")
         return missing
 
     def validate_complete(self) -> None:
-        if self.storage_consistency_mode not in {"strict", "best-effort-personal"}:
+        if self.storage_provider not in {"google-drive", "github"}:
+            raise ValidationError("storage provider must be google-drive or github")
+        if self.storage_provider == "google-drive" and self.github_repository_url is not None:
+            raise ValidationError("Drive setup cannot contain a GitHub destination")
+        if self.storage_provider == "github" and self.drive_parent_id is not None:
+            raise ValidationError("GitHub setup cannot contain a Drive destination")
+        if self.storage_provider == "google-drive" and self.storage_consistency_mode not in {"strict", "best-effort-personal"}:
             raise ValidationError("storage consistency mode must be strict or best-effort-personal")
+        if self.storage_provider == "github" and self.storage_consistency_mode != "git-fast-forward":
+            raise ValidationError("GitHub setup requires git-fast-forward consistency")
         missing = self.missing_fields()
         if missing:
             raise ValidationError("missing setup fields: " + ", ".join(missing))
         if not self.primary_topics or any(not p.get("name") for p in self.primary_topics):
             raise ValidationError("at least one named primary topic is required")
+        if self.storage_provider == "github" and not re.fullmatch(
+            r"https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+(?:\.git)?/?", self.github_repository_url or ""
+        ):
+            raise ValidationError("GitHub destination must be a normal https://github.com/owner/repository link")
 
 
 def consolidated_interview(setup: SetupInput) -> str | None:
@@ -69,7 +95,9 @@ def consolidated_interview(setup: SetupInput) -> str | None:
         "primary_topics": "primary topic(s) and useful aliases",
         "purpose": "purpose/projects/constraints",
         "exclusions": "semantic exclusions (say none if none)",
+        "storage_provider": "storage provider (Google Drive recommended; GitHub remains experimental)",
         "drive_parent_id": "approved Google Drive destination",
+        "github_repository_url": "dedicated private GitHub repository link (not a token or copied repository ID)",
         "daily_time": "daily start time",
         "weekly_day": "weekly maintenance day",
         "weekly_time": "weekly maintenance start time",
@@ -95,12 +123,16 @@ def setup_summary(setup: SetupInput) -> str:
         f"- Exclusions: {', '.join(setup.exclusions or []) or 'None'}\n"
         f"- Language/timezone: {setup.language} / {setup.timezone}\n"
         f"- Daily start: {setup.daily_time}; weekly: {setup.weekly_day} {setup.weekly_time}\n"
-        f"- Storage consistency: {setup.storage_consistency_mode}"
+        f"- Storage provider: {setup.storage_provider}\n"
+        f"- Storage destination: {setup.drive_parent_id if setup.storage_provider == 'google-drive' else setup.github_repository_url}\n"
+        f"- Storage consistency: {'git-fast-forward' if setup.storage_provider == 'github' else setup.storage_consistency_mode}"
         + (" (permanent Drive lock; expires after 20 hours; non-atomic and best-effort only)\n"
-           if setup.storage_consistency_mode == "best-effort-personal" else "\n")
+           if setup.storage_provider == "google-drive" and setup.storage_consistency_mode == "best-effort-personal" else "\n")
         + "- Initialization: up to 5 separately accounted investigations\n"
         "- Daily: every primary topic receives a finite refresh outside 5 normal / urgent-only maximum 10 queue attempts\n"
-        "- Storage/runtime: private Google Drive raw files and an immutable pinned snapshot\n"
+        + ("- Storage/runtime: private Google Drive raw files and an immutable pinned snapshot\n"
+           if setup.storage_provider == "google-drive"
+           else "- Storage/runtime: dedicated private GitHub repository, canonical non-force ref, and immutable pinned snapshot; Git history retains prior content\n")
     )
 
 

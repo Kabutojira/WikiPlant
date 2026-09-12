@@ -6,6 +6,8 @@ Baseline commands: `PYTHONPATH=scripts python -m unittest discover -s tests -p '
 
 Final local checkpoint, 2026-09-10: **186 tests PASS**, repository validator PASS, draft packaging PASS, synthetic installer e2e PASS. Source version: **0.2.1 development**. Local M0–M7 implementation, M8 migration, and the opt-in best-effort personal lock mode are present; behavioral release acceptance is PARTIAL and live acceptance is NOT RUN. This evidence records no live Drive mutation, permission change or schedule operation. Git hosting state and detached release assets must be verified independently from the checkout.
 
+GitHub implementation checkpoint, 2026-09-12: Drive remains the implemented/default backend and its existing path is unchanged. The opt-in GitHub path now has tagged provider schemas/configuration, a provider-bound skill and schedule renderer, an exact-generation Git object adapter, a dedicated-private-repository installer, explicit bidirectional storage-migration packages/checkpoints, content-free benchmark summaries, and deterministic failure fakes. The GitHub writer uses sole-parent commits and only `force=false` canonical-ref updates; bootstrap and related-file publication are atomic at the ref. Current local result: **241 tests PASS**, repository validator PASS, draft inventory regeneration PASS, and synthetic Drive e2e PASS. These are synthetic/local results only. No GitHub integration, repository, skill, scheduled run, overlap, migration, latency, notification or release gate was exercised live; the standard ChatGPT GitHub app remains documented as read-only.
+
 ## Shared v2 implementation contracts
 
 - Storage: `SafeWriter.replace(binding, content, operation_id, *, base: FileSnapshot)` requires the exact generation snapshot; returns a `WriteReceipt` with historical verified identity and current snapshot. Durable immutable intent/completion records and paginated exact reads drive replay. Strict mode blocks weak adapters. Explicit best-effort personal mode binds a weak writer to a mapped permanent lock with owner/readback checks and an exact 20-hour stale threshold; it reduces overlap but remains non-atomic. Uncertain creates reconcile by immutable name/content and never blindly retry.
@@ -30,6 +32,10 @@ Final local checkpoint, 2026-09-10: **186 tests PASS**, repository validator PAS
 | WP-C07/C08/C09 M6 resilient execution | `monitoring.py`, `orchestrator.py`, `maintenance.py`; persisted results/reservations/backoff, assessed material monitoring, independent wiki/report receipts and isolated phase failures | PASS (local bridge contracts) |
 | M7 releases, consent, updater | `releases.py`, `upgrades.py`, detached manifest/CLI and 23 targeted release/migration/update tests below | PASS (local helper/bridge contracts; live NOT RUN) |
 | M8 legacy migration | `migrations/v1_to_v2.py`; conservative provenance/status mapping, byte preservation, idempotence and reconciliation report | PASS (local migration; live and model gates NOT RUN) |
+| G1–G5 GitHub storage/config/installer | `storage_contract.py`, `github_storage.py`, `github_installer.py`, provider schemas/skills/schedules and `FakeGitHub`; exact binding, atomic bootstrap/transactions, non-force publication, conflicts/replay/limits/capability blocks | PASS (local fake provider) |
+| G6 storage-provider migration | `storage_migration.py`; current-user target authorization, complete raw export metadata, Drive-only lock archival, destination binding transforms, exact import verification and sequential resumable checkpoints in both directions | PASS (local package; live host handoff NOT RUN) |
+| G7 GitHub regression/security suite | privacy/fork/archive/ref/ruleset/permissions, sibling overlap, lost response/orphans, branch/repository/config/instance binding, truncation/limits and prompt minimization tests | PASS (local) |
+| G8/G9 GitHub live acceptance/release | Dedicated sandbox integration, unattended Work writes, forced overlap, nonce freshness, fresh-chat routing, migrations, notifications and comparative performance | NOT RUN; production activation blocked |
 | Behavioral evaluations | 10 actual bounded assistant judgments; retained rubric defect/fixture limits; 5 further governance cases prepared | PARTIAL; independent repeatability, governance model runs and human review NOT RUN |
 | Live installation, raw freshness, overlap, update, notifications | Approved new Work sandbox required | NOT RUN |
 
@@ -67,13 +73,13 @@ Saved research and material monitoring now independently resolve assessment/sour
 
 ```text
 PYTHONPATH=scripts python -m unittest discover -s tests -p 'test_*.py'
-  PASS — 186 tests
+  PASS — 241 tests
 PYTHONPATH=scripts python -m wikiplant.cli package --root . --draft
   PASS — release/runtime-manifest.json (draft, not installable)
 PYTHONPATH=scripts python -m wikiplant.cli validate --root .
   PASS — schemas, templates, policies, private-marker scan, manifest and runtime import closure
 PYTHONPATH=scripts python -m wikiplant.cli e2e --root .
-  PASS — synthetic only: 1 skill, 2 tasks, 1 seed attempt, 165 fake Drive objects
+  PASS — synthetic only: 1 skill, 2 tasks, 1 seed attempt, 170 fake Drive objects
 git diff --check
   PASS
 ```

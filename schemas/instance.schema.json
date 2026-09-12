@@ -1,16 +1,65 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://wikiplant.invalid/schemas/instance-v1.json",
+  "$id": "https://wikiplant.invalid/schemas/instance.json",
   "type": "object",
-  "required": ["schema_version", "instance_id", "root_folder_id", "config_file_id", "drive_map_file_id", "runtime_release_id", "source_commit"],
+  "required": ["schema_version", "instance_id", "runtime_release_id", "source_commit"],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {"enum": [1, 2]},
     "instance_id": {"type": "string", "pattern": "^wp-[a-f0-9]{16}$"},
     "root_folder_id": {"type": "string", "minLength": 1},
     "config_file_id": {"type": "string", "minLength": 1},
     "drive_map_file_id": {"type": "string", "minLength": 1},
+    "storage": {
+      "type": "object",
+      "properties": {
+        "provider": {"enum": ["google-drive", "github"]},
+        "root_folder_id": {"type": "string", "minLength": 1},
+        "config_file_id": {"type": "string", "minLength": 1},
+        "drive_map_file_id": {"type": "string", "minLength": 1},
+        "repository_id": {"type": "string", "minLength": 1},
+        "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+        "canonical_ref": {"type": "string", "pattern": "^refs/heads/(?![./])(?!.*(?:\\.\\.|//|@\\{|\\.lock$))[A-Za-z0-9._/-]*[A-Za-z0-9_-]$"},
+        "root_prefix": {"const": ""},
+        "repository_visibility": {"const": "private"},
+        "app_installation_id": {"type": "string", "minLength": 1},
+        "capability_profile_path": {"const": "installation/capability-profile.json"},
+        "first_verified_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"}
+      },
+      "oneOf": [
+        {
+          "required": ["provider", "root_folder_id", "config_file_id", "drive_map_file_id"],
+          "properties": {"provider": {"const": "google-drive"}},
+          "not": {"anyOf": [
+            {"required": ["repository_id"]}, {"required": ["repository"]}, {"required": ["canonical_ref"]},
+            {"required": ["root_prefix"]}, {"required": ["repository_visibility"]},
+            {"required": ["app_installation_id"]}, {"required": ["first_verified_commit"]}
+          ]}
+        },
+        {
+          "required": ["provider", "repository_id", "repository", "canonical_ref", "root_prefix", "repository_visibility", "app_installation_id", "capability_profile_path", "first_verified_commit"],
+          "properties": {"provider": {"const": "github"}},
+          "not": {"anyOf": [
+            {"required": ["root_folder_id"]}, {"required": ["config_file_id"]}, {"required": ["drive_map_file_id"]}
+          ]}
+        }
+      ]
+    },
     "runtime_release_id": {"type": "string", "minLength": 1},
     "source_commit": {"type": "string", "pattern": "^[a-f0-9]{40}$"}
   },
+  "oneOf": [
+    {
+      "properties": {"schema_version": {"const": 1}},
+      "required": ["root_folder_id", "config_file_id", "drive_map_file_id"],
+      "not": {"required": ["storage"]}
+    },
+    {
+      "properties": {"schema_version": {"const": 2}},
+      "required": ["storage"],
+      "not": {"anyOf": [
+        {"required": ["root_folder_id"]}, {"required": ["config_file_id"]}, {"required": ["drive_map_file_id"]}
+      ]}
+    }
+  ],
   "additionalProperties": true
 }

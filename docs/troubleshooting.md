@@ -3,8 +3,12 @@
 - `AWAITING_HOST_INSTALL`: the generated candidate exists but is not installed. Complete the private host installation control once, then say “continue installation.” Do not regenerate it.
 - Release metadata visible, manifest body unavailable: inspect the asset's GitHub-reported digest/size and use the release-note `manifest_mirror` pinned to a full commit. Continue only if complete mirror bytes match both. Never ask the user to create/upload the manifest, and never accept a `main`-branch mirror.
 - `@Google Drive` unavailable: enable/connect the Google Drive plugin and authorize the appropriate account/actions for this Work surface. A mention does not grant access. If connected but the destination is missing, create one empty private parent folder and paste its normal link; do not create any WikiPlant files yourself.
+- `BLOCKED_GITHUB_WRITE_CAPABILITY`: the standard ChatGPT GitHub app is read-only and cannot serve as WikiPlant storage. Connect an approved Work-accessible GitHub App/integration limited to the selected private repository, then resume the saved checkpoint. It must expose exact ref/commit/tree/blob reads, Git object creation, `force=false` ref update, readback/recovery, and unattended scheduled use. Do not supply a personal access token, enable GitHub Actions research, or switch to Drive unless you explicitly choose a new provider.
+- GitHub destination rejected: use one dedicated private, non-fork, non-archived repository with the intended app installation. A same-name repository, repository search result, mutable branch URL, public repository, or shared multi-instance repository is not a valid binding.
+- GitHub ref conflict (`409`/`422`) or unexpected head: preserve the durable intent, read the new canonical head and exact blobs, validate the intervening commit, and reconcile within the bounded retry policy. Never force-push, rewind, delete the ref, or rebuild from search output.
+- GitHub object created but publication uncertain: reconcile the operation ID, current ref, reachability, commit parentage, tree, and intended blob hashes. An orphaned blob/tree/commit is not `SAVED`.
 - `BLOCKED` after seeding: inspect Scheduled for the prepared daily/weekly task plans. Save/approve only those two cards, then resume so WikiPlant can record actual IDs and next occurrences.
-- Hash/commit/path failure: stop. Use a published immutable release whose manifest matches the resolved commit; never bypass the allowlist.
+- Hash/commit/path failure: stop. For release files, use a published immutable release whose manifest matches the resolved source commit. For GitHub instance data, use only the bound repository/ref and exact observed base commit. Never bypass the allowlist or mix the two repositories.
 - Same-name Drive file: use the mapped exact raw ID and MIME type. Never substitute a Google Doc/Sheet conversion.
 - Partial/truncated read, moved file, or denied permission: make no replacement. Restore appropriate access/scope or mapping, then resume the recorded operation.
 - Conflict during canonical write: retain the unique inbox/proposal and current manual content. Let the canonical writer reconcile from fresh reads; do not overwrite from a cached CSV/page.
@@ -12,4 +16,4 @@
 - Main-topic search outage: record `PARTIAL`/`BLOCKED` with unused/used counters. Do not call it “no update” and do not spend queue slots to disguise the missing pass.
 - Report saved but result failed: retry native result publication using the saved report; do not repeat research.
 - No push/email observed: check Settings → Notifications. Keep `notification_observed` unknown unless the host/user actually observes it.
-- Upstream unavailable: continue on the pinned Drive runtime. Upgrades are explicit and never required for a normal daily run.
+- Upstream unavailable: continue on the active provider's pinned runtime snapshot. Upgrades are explicit and never required for a normal daily run.

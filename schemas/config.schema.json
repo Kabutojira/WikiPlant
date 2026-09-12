@@ -12,11 +12,14 @@
     },
     "storage": {
       "type": "object",
-      "required": ["provider", "root_folder_id", "consistency_mode"],
       "properties": {
-        "provider": {"const": "google-drive"},
+        "provider": {"enum": ["google-drive", "github"]},
         "root_folder_id": {"type": "string", "minLength": 1},
-        "consistency_mode": {"enum": ["strict", "best-effort-personal"]},
+        "repository_id": {"type": "string", "minLength": 1},
+        "repository": {"type": "string", "pattern": "^[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+$"},
+        "canonical_ref": {"type": "string", "pattern": "^refs/heads/(?![./])(?!.*(?:\\.\\.|//|@\\{|\\.lock$))[A-Za-z0-9._/-]*[A-Za-z0-9_-]$"},
+        "root_prefix": {"const": ""},
+        "consistency_mode": {"enum": ["strict", "best-effort-personal", "git-fast-forward"]},
         "personal_lock": {
           "type": "object",
           "required": ["file_id", "logical_path", "stale_after_hours"],
@@ -26,8 +29,40 @@
             "stale_after_hours": {"const": 20}
           },
           "additionalProperties": false
+        },
+        "limits": {
+          "type": "object",
+          "required": ["max_file_bytes", "max_transaction_bytes", "max_repository_bytes", "max_paths_per_transaction"],
+          "properties": {
+            "max_file_bytes": {"type": "integer", "minimum": 1},
+            "max_transaction_bytes": {"type": "integer", "minimum": 1},
+            "max_repository_bytes": {"type": "integer", "minimum": 1},
+            "max_paths_per_transaction": {"type": "integer", "minimum": 1}
+          },
+          "additionalProperties": false
         }
-      }
+      },
+      "oneOf": [
+        {
+          "required": ["provider", "root_folder_id", "consistency_mode"],
+          "properties": {
+            "provider": {"const": "google-drive"},
+            "consistency_mode": {"enum": ["strict", "best-effort-personal"]}
+          },
+          "not": {"anyOf": [
+            {"required": ["repository_id"]}, {"required": ["repository"]},
+            {"required": ["canonical_ref"]}, {"required": ["root_prefix"]}, {"required": ["limits"]}
+          ]}
+        },
+        {
+          "required": ["provider", "repository_id", "repository", "canonical_ref", "root_prefix", "consistency_mode", "limits"],
+          "properties": {
+            "provider": {"const": "github"},
+            "consistency_mode": {"const": "git-fast-forward"}
+          },
+          "not": {"anyOf": [{"required": ["root_folder_id"]}, {"required": ["personal_lock"]}]}
+        }
+      ]
     },
     "runtime": {"type": "object", "required": ["release_id", "source_commit", "manifest_sha256", "upgrades"], "properties": {"upgrades": {"const": "explicit-user-request"}}},
     "skill": {"type": "object", "required": ["per_instance", "routing_profile_revision"], "properties": {"per_instance": {"const": true}, "routing_profile_revision": {"type": "integer", "minimum": 1}}},

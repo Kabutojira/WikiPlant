@@ -9,6 +9,18 @@ class CapabilityProfile:
     google_drive_full_read: bool = False
     google_drive_content_update: bool = False
     google_drive_paginated_list: bool = False
+    github_repository_binding: bool = False
+    github_exact_generation_read: bool = False
+    github_blob_create: bool = False
+    github_tree_create: bool = False
+    github_commit_create: bool = False
+    github_non_force_ref_update: bool = False
+    github_ref_create: bool = False
+    github_ref_protection_observed: bool = False
+    github_repository_size_observed: bool = False
+    github_generation_verify: bool = False
+    github_operation_reconcile: bool = False
+    github_scheduled_access: bool = False
     private_skill_install: bool = False
     scheduled_task_create: bool = False
     scheduled_task_inspect: bool = False
@@ -19,13 +31,29 @@ class CapabilityProfile:
     observed_at: str | None = None
     tool_names: tuple[str, ...] = ()
 
-    def storage_ready(self) -> bool:
-        return all((
-            self.google_drive_raw_create,
-            self.google_drive_full_read,
-            self.google_drive_content_update,
-            self.google_drive_paginated_list,
-        ))
+    def storage_ready(self, provider: str = "google-drive") -> bool:
+        return not self.missing_storage_capabilities(provider)
+
+    def missing_storage_capabilities(self, provider: str = "google-drive") -> tuple[str, ...]:
+        requirements = {
+            "google-drive": (
+                "google_drive_raw_create", "google_drive_full_read",
+                "google_drive_content_update", "google_drive_paginated_list",
+            ),
+            "github": (
+                "github_repository_binding", "github_exact_generation_read",
+                "github_blob_create", "github_tree_create", "github_commit_create",
+                "github_non_force_ref_update",
+                "github_ref_create",
+                "github_ref_protection_observed",
+                "github_repository_size_observed",
+                "github_generation_verify", "github_operation_reconcile",
+                "github_scheduled_access",
+            ),
+        }
+        if provider not in requirements:
+            raise ValueError("unknown storage provider")
+        return tuple(name for name in requirements[provider] if not getattr(self, name))
 
     def strict_consistency_ready(self) -> bool:
         return self.conditional_write and self.idempotent_create and self.serialized_task_runs
